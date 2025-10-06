@@ -5,7 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
 
-    <changeSet id="001" author="Alessandro">
+    <changeSet id="001-create_authors_tables" author="Alessandro">
         <comment>Creazione tabella authors con created_at e updated_at (Postgres)</comment>
 
         <createTable tableName="authors">
@@ -39,7 +39,7 @@
     </changeSet>
 
 
-    <changeSet id="002" author="Alessandro">
+    <changeSet id="002-create_books_tables" author="Alessandro">
         <createTable tableName="books">
             <column name="id" type="BIGSERIAL" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
@@ -78,7 +78,7 @@
     </changeSet>
 
 
-    <changeSet id="003" author="Alessandro">
+    <changeSet id="003-create_categories_tables" author="Alessandro">
         <createTable tableName="categories">
             <column name="id" type="BIGSERIAL" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
@@ -105,7 +105,7 @@
     </changeSet>
 
 
-    <changeSet id="004" author="Alessandro">
+    <changeSet id="004-create_book_category_tables" author="Alessandro">
         <createTable tableName="book_category">
             <column name="book_id" type="BIGINT">
                 <constraints nullable="false"/>
@@ -146,7 +146,7 @@
     </changeSet>
 
 
-    <changeSet id="005" author="Alessandro">
+    <changeSet id="005-create_users_tables" author="Alessandro">
         <createTable tableName="users">
             <column name="id" type="BIGSERIAL" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
@@ -182,7 +182,7 @@
     </changeSet>
 
 
-    <changeSet id="006" author="Alessandro">
+    <changeSet id="006-create_loans_tables" author="Alessandro">
         <createTable tableName="loans">
             <column name="id" type="BIGSERIAL" autoIncrement="true" >
                 <constraints primaryKey="true" nullable="false"/>
