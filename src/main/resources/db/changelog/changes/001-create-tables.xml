@@ -21,7 +21,7 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="birth_date" type="date">
+            <column name="birthDate" type="date">
                 <constraints nullable="false"/>
             </column>
 
