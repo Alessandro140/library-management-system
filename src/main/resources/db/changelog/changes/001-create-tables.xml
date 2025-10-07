@@ -64,6 +64,13 @@
                 <constraints nullable="false"/>
             </column>
 
+            <column name="total_copies" type="INT">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="available_copies" type="INT">
+                <constraints nullable="false"/>
+            </column>
             <column name="created_at" type="timestamptz" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -216,6 +223,41 @@
         </createTable>
         <rollback>
             <dropTable tableName="loans"/>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="007-create_loans_book_tables" author="Alessandro">
+        <createTable tableName="loans_book">
+            <column name="loan" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="book" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="loans_book"
+                    columnNames="loan,book"
+                    constraintName="pk_loans_books"/>
+
+        <addForeignKeyConstraint baseTableName="loans_book"
+                                baseColumnNames="book"
+                                constraintName="fk_loans_book_book"
+                                referencedTableName="books"
+                                referencedColumnNames="id"
+                                onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="loans_book"
+                                baseColumnNames="loan"
+                                constraintName="fk_loans_book_loan"
+                                referencedTableName="loans"
+                                referencedColumnNames="id"
+                                onDelete="CASCADE"/>
+        <rollback>
+            <dropForeignKeyConstraint baseTableName="loans_book"
+                                    constraintName="fk_loans_book_book"/>
+            <dropForeignKeyConstraint baseTableName="loans_book"
+                                    constraintName="fk_loans_book_loan"/>
+            <dropTable tableName="loans_book"/>
         </rollback>
     </changeSet>
 </databaseChangeLog>

@@ -26,12 +26,16 @@
             <column name="ISBN" value="1234567890123"/>
             <column name="authorId" valueNumeric="1"/>
             <column name="published_date" value="2000-01-01"/>
+            <column name="total_copies" valueNumeric="5"/>
+            <column name="available_copies" valueNumeric="5"/>
         </insert>
         <insert tableName="books">
             <column name="title" value="Sample Book 2"/>
             <column name="ISBN" value="0000000000000"/>
             <column name="authorId" valueNumeric="2"/>
             <column name="published_date" value="2000-01-01"/>
+            <column name="total_copies" valueNumeric="3"/>
+            <column name="available_copies" valueNumeric="1"/>
         </insert>
     </changeSet>
 
