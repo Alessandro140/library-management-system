@@ -9,6 +9,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.Set;
 
 /*
  * Represents an author in the library system.
@@ -48,4 +50,9 @@ public class Author extends Auditable {
      */
     @Column(nullable = false)
     private LocalDate birthDate;
+    /*
+     * The books written by the author.
+     */
+    @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Book> books = new HashSet<>();
 }
