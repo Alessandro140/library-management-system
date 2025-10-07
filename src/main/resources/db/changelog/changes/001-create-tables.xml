@@ -193,10 +193,6 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
 
-            <column name="bookId" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_loans_books" references="books(id)"/>
-            </column>
-
             <column name="userId" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_loans_users" references="users(id)"/>
             </column>

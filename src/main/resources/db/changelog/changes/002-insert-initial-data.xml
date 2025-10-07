@@ -80,13 +80,11 @@
 
     <changeSet id="006-add_loans" author="Alessandro">
         <insert tableName="loans">
-            <column name="bookId" valueNumeric="1"/>
             <column name="userId" valueNumeric="1"/>
             <column name="loanDate" value="2023-01-01"/>
             <column name="dueDate" value="2023-01-15"/>
         </insert>
         <insert tableName="loans">
-            <column name="bookId" valueNumeric="2"/>
             <column name="userId" valueNumeric="2"/>
             <column name="loanDate" value="2023-02-01"/>
             <column name="dueDate" value="2023-02-15"/>
