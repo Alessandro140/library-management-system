@@ -27,7 +27,6 @@ public class Author extends Auditable {
     @Column(nullable = false, length = 255)
     private String firstName;
 
-
     @Column(nullable = false, length = 255)
     private String lastName;
 
