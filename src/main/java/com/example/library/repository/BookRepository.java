@@ -7,7 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
-/**
+/*
  * Repository for the Book entity.
  */
 @Repository
