@@ -3,7 +3,7 @@ package com.example.library.dto;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -37,7 +37,7 @@ public class LoanDTO {
      * The date when the loan was made.
      */
     @NotNull
-    @Past
+    @PastOrPresent(message = "Loan date must be in the past or present")
     public LocalDate loanDate;
 
     /*
