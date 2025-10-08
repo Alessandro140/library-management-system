@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -101,4 +103,9 @@ public class Book extends Auditable{
             inverseJoinColumns = @JoinColumn(name = "loan")
     )
     private final Set<Loan> loans = new HashSet<>();
+    /*
+    * Indicates whether the book is deleted (soft delete).
+    */
+    @Builder.Default
+    private Boolean isDeleted = false;
 }

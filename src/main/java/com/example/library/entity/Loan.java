@@ -3,6 +3,7 @@ package com.example.library.entity;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
@@ -65,4 +67,11 @@ public class Loan extends Auditable {
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     private LoanStatus status;
+
+    /*
+    * Indicates whether the book is deleted (soft delete).
+    */
+    @Builder.Default
+    private Boolean isDeleted = false;
+
 }

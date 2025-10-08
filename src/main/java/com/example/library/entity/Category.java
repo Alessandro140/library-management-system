@@ -3,6 +3,7 @@ package com.example.library.entity;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.Set;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Builder
 @Table(name = "categories")
 public class Category extends Auditable {
 
@@ -51,5 +53,11 @@ public class Category extends Auditable {
      */
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "categories")
     private final Set<Book> books = new HashSet<>();
+
+    /*
+    * Indicates whether the category is deleted (soft delete).
+    */
+    @Builder.Default
+    private Boolean isDeleted = false;
 
 }

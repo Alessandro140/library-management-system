@@ -3,6 +3,7 @@ package com.example.library.entity;
 import jakarta.persistence.*;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
+@Builder
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "users")
@@ -62,4 +64,11 @@ public class User extends Auditable {
      */
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private final Set<Loan> loans = new HashSet<>();
+
+    /*
+    * Indicates whether the User is deleted (soft delete).
+    */
+    @Builder.Default
+    private Boolean isDeleted = false;
+
 }

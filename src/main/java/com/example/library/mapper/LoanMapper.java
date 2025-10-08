@@ -10,12 +10,14 @@ import org.mapstruct.MappingTarget;
 public interface LoanMapper {
 
     @IgnoreAuditFields
+    @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "user", ignore = true)
     Loan toEntity(LoanDTO dto);
 
     LoanDTO toDto(Loan entity);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     @IgnoreAuditFields
     Loan updateLoan(LoanDTO dto, @MappingTarget Loan entity);
 

@@ -11,6 +11,7 @@ import org.mapstruct.MappingTarget;
 public interface CategoryMapper {
 
     @IgnoreAuditFields
+    @Mapping(target = "isDeleted", ignore = true)
     @Mapping(target = "books", ignore = true)
     Category toEntity(CategoryDTO dto);
 
@@ -18,6 +19,7 @@ public interface CategoryMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "books", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     @IgnoreAuditFields
     Category updateCategory(CategoryDTO dto, @MappingTarget Category entity);
 

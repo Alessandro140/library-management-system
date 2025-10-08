@@ -10,11 +10,13 @@ import org.mapstruct.MappingTarget;
 public interface AuthorMapper {
 
     @IgnoreAuditFields
+    @Mapping(target = "isDeleted", ignore = true)
     Author toEntity(AuthorDTO dto);
 
     AuthorDTO toDto(Author entity);
 
     @Mapping(target = "id", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     @IgnoreAuditFields
     Author updateAuthor(AuthorDTO dto, @MappingTarget Author entity);
 }

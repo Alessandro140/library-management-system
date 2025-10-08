@@ -13,6 +13,7 @@ public interface BookMapper {
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "loans", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     Book toEntity(BookDTO dto);
 
     BookDTO toDto(Book entity);
@@ -22,5 +23,6 @@ public interface BookMapper {
     @Mapping(target = "author", ignore = true)
     @Mapping(target = "categories", ignore = true)
     @Mapping(target = "loans", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     Book updateBook(BookDTO dto, @MappingTarget Book entity);
 }

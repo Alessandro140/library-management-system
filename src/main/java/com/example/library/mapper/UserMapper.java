@@ -12,6 +12,7 @@ import org.mapstruct.MappingTarget;
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "loans", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     User toEntity(UserDTO dto);
 
     UserDTO toDto(User entity);
@@ -21,5 +22,6 @@ import org.mapstruct.MappingTarget;
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "email", ignore = true)
     @Mapping(target = "loans", ignore = true)
+    @Mapping(target = "isDeleted", ignore = true)
     User updateUser(UserDTO dto, @MappingTarget User entity);
 }

@@ -2,6 +2,7 @@ package com.example.library.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -23,6 +24,7 @@ import java.util.Set;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Builder
 @Table(name = "authors")
 public class Author extends Auditable {
 
@@ -53,6 +55,12 @@ public class Author extends Auditable {
     /*
      * The books written by the author.
      */
+    @Builder.Default
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Book> books = new HashSet<>();
+    /*
+     * Indicates whether the author is deleted (soft delete).
+     */
+    @Builder.Default
+    private Boolean isDeleted = false;
 }
