@@ -7,7 +7,7 @@
 
     <changeSet id="001-add_authors" author="Alessandro">
         <addColumn tableName="authors">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false">
+            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
             <dropColumn tableName="authors" columnName="isDeleted"/>
@@ -16,7 +16,7 @@
 
     <changeSet id="002-add_books" author="Alessandro">
         <addColumn tableName="books">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false">
+            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
             <dropColumn tableName="books" columnName="isDeleted"/>
@@ -25,7 +25,7 @@
 
     <changeSet id="003-add_category" author="Alessandro">
         <addColumn tableName="categories">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false">
+            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
             <dropColumn tableName="categories" columnName="isDeleted"/>
@@ -34,7 +34,7 @@
 
     <changeSet id="004-add_loans" author="Alessandro">
         <addColumn tableName="loans">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false">
+            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
             <dropColumn tableName="loans" columnName="isDeleted"/>
@@ -43,7 +43,7 @@
 
     <changeSet id="005-add_user" author="Alessandro">
         <addColumn tableName="users">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false">
+            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
             <dropColumn tableName="users" columnName="isDeleted"/>

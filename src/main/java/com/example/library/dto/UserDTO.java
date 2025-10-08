@@ -5,11 +5,9 @@ import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.example.library.entity.Loan;
 
 /**
  * A DTO representing a user in the library system.
