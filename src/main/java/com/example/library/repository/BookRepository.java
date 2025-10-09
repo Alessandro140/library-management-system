@@ -18,7 +18,31 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 	 * @param isbn the ISBN of the book
 	 * @return an optional with the book if found, empty otherwise
 	 */
-	Optional<Book> findByISBN(String isbn);
+	Optional<Book> findByISBNAndDeletedFalse(String isbn);
 
 
+	/**
+	 * Find a book by its id.
+	 *
+	 * @param id the id of the book
+	 * @return an optional with the book if found, empty otherwise
+	 */
+	Optional<Book> findByIdAndDeletedFalse(Long id);
+
+	/**
+	 * Find a soft deleted book by its ISBN.
+	 *
+	 * @param isbn the ISBN of the book
+	 * @return an optional with the book if found, empty otherwise
+	 */
+	Optional<Book> findByISBNAndDeletedTrue(String isbn);
+
+
+	/**
+	 * Find a soft deleted book by its id.
+	 *
+	 * @param id the id of the book
+	 * @return an optional with the book if found, empty otherwise
+	 */
+	Optional<Book> findByIdAndDeletedTrue(Long id);
 }

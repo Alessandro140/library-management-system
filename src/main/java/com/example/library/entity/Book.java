@@ -5,7 +5,6 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -24,65 +23,64 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "books")
 public class Book extends Auditable{
 
-    /*
+    /**
      * The unique identifier of the book.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
+    /**
      * The title of the book.
      */
     @Column(nullable = false, length = 255)
     private String title;
 
-    /*
+    /**
      * The description of the book. Can be up to 10000 characters long.
      * This field is optional.
      */
     @Size(max = 10000)
     private String description;
 
-    /*
+    /**
      * The ISBN of the book. Must be unique and 13 characters long.
      */
-    @Column(nullable = false, length = 13, unique = true)
+    @Column(nullable = false, length = 13)
     private String ISBN;
 
-    /*
+    /**
      * The author of the book.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "authorId", nullable = false)
     private Author author;
 
-    /*
+    /**
      * The total number of copies of the book in the library.
      */
     @Column(nullable = false)
     private Integer total_copies;
 
-    /*
+    /**
      * The number of available copies of the book in the library.
      */
     @Column(nullable = false)
     private Integer available_copies;
 
-    /*
+    /**
      * The publication date of the book.
      */
     @Column(nullable = false)
     private LocalDate published_date;
 
-    /*
+    /**
      * The categories that the book belongs to.
      */
     @ManyToMany(fetch = FetchType.LAZY)
@@ -93,7 +91,7 @@ public class Book extends Auditable{
     )
     private final Set<Category> categories = new HashSet<>();
 
-    /*
+    /**
      * The loans that the book is associated with.
      */
     @ManyToMany(fetch = FetchType.LAZY)
@@ -103,9 +101,8 @@ public class Book extends Auditable{
             inverseJoinColumns = @JoinColumn(name = "loan")
     )
     private final Set<Loan> loans = new HashSet<>();
-    /*
+    /**
     * Indicates whether the book is deleted (soft delete).
     */
-    @Builder.Default
-    private Boolean isDeleted = false;
+    private Boolean deleted = false;
 }

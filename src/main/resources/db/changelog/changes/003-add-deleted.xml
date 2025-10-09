@@ -7,46 +7,46 @@
 
     <changeSet id="001-add_authors" author="Alessandro">
         <addColumn tableName="authors">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
+            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
-            <dropColumn tableName="authors" columnName="isDeleted"/>
+            <dropColumn tableName="authors" columnName="deleted"/>
         </rollback>
     </changeSet>
 
     <changeSet id="002-add_books" author="Alessandro">
         <addColumn tableName="books">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
+            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
-            <dropColumn tableName="books" columnName="isDeleted"/>
+            <dropColumn tableName="books" columnName="deleted"/>
         </rollback>
     </changeSet>
 
     <changeSet id="003-add_category" author="Alessandro">
         <addColumn tableName="categories">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
+            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
-            <dropColumn tableName="categories" columnName="isDeleted"/>
+            <dropColumn tableName="categories" columnName="deleted"/>
         </rollback>
     </changeSet>
 
     <changeSet id="004-add_loans" author="Alessandro">
         <addColumn tableName="loans">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
+            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
-            <dropColumn tableName="loans" columnName="isDeleted"/>
+            <dropColumn tableName="loans" columnName="deleted"/>
         </rollback>
     </changeSet>
 
     <changeSet id="005-add_user" author="Alessandro">
         <addColumn tableName="users">
-            <column name="isDeleted" type="boolean" defaultValueBoolean="false"/>
+            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
         </addColumn>
         <rollback>
-            <dropColumn tableName="users" columnName="isDeleted"/>
+            <dropColumn tableName="users" columnName="deleted"/>
         </rollback>
     </changeSet>
 </databaseChangeLog>

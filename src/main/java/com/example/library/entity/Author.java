@@ -2,7 +2,6 @@ package com.example.library.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,7 +12,7 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
-/*
+/**
  * Represents an author in the library system.
  * This entity is mapped to the 'authors' table in the database.
  */
@@ -24,43 +23,40 @@ import java.util.Set;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
-@Builder
 @Table(name = "authors")
 public class Author extends Auditable {
 
-    /*
+    /**
      * The unique identifier of the author.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /*
+    /**
      * The first name of the author.
      */
     @Column(nullable = false, length = 255)
     private String firstName;
 
-    /*
+    /**
      * The last name of the author.
      */
     @Column(nullable = false, length = 255)
     private String lastName;
 
-    /*
+    /**
      * The birth date of the author.
      */
     @Column(nullable = false)
     private LocalDate birthDate;
-    /*
+    /**
      * The books written by the author.
      */
-    @Builder.Default
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Book> books = new HashSet<>();
-    /*
+    /**
      * Indicates whether the author is deleted (soft delete).
      */
-    @Builder.Default
-    private Boolean isDeleted = false;
+    private Boolean deleted = false;
 }

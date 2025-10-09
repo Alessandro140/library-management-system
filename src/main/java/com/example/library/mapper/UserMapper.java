@@ -6,13 +6,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring")public interface UserMapper {
+@Mapper(componentModel = "spring", uses = {LoanMapper.class})
+public interface UserMapper {
 
     @IgnoreAuditFields
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "email", ignore = true)
-    @Mapping(target = "loans", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     User toEntity(UserDTO dto);
 
     UserDTO toDto(User entity);
@@ -21,7 +21,6 @@ import org.mapstruct.MappingTarget;
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "email", ignore = true)
-    @Mapping(target = "loans", ignore = true)
-    @Mapping(target = "isDeleted", ignore = true)
+    @Mapping(target = "deleted", ignore = true)
     User updateUser(UserDTO dto, @MappingTarget User entity);
 }

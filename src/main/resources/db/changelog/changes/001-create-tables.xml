@@ -39,9 +39,9 @@
     </changeSet>
 
 
-    <changeSet id="002-create_books_tables" author="Alessandro">
+    <changeSet id="002-create_books_table" author="Alessandro">
         <createTable tableName="books">
-            <column name="id" type="BIGSERIAL" autoIncrement="true" >
+            <column name="id" type="BIGSERIAL" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
 
@@ -49,15 +49,16 @@
                 <constraints nullable="false"/>
             </column>
 
-            <column name="description" type="TEXT">
+            <column name="description" type="TEXT"/>
+
+            <column name="isbn" type="varchar(13)">
+                <constraints nullable="false"/>
             </column>
 
-            <column name="ISBN" type="varchar(13)">
-                <constraints nullable="false" unique="true"/>
-            </column>
-
-            <column name="authorId" type="BIGINT">
-                <constraints nullable="false" foreignKeyName="fk_books_authors" references="authors(id)"/>
+            <column name="author_id" type="BIGINT">
+                <constraints nullable="false"
+                            foreignKeyName="fk_books_authors"
+                            references="authors(id)"/>
             </column>
 
             <column name="published_date" type="date">
@@ -71,6 +72,13 @@
             <column name="available_copies" type="INT">
                 <constraints nullable="false"/>
             </column>
+
+            <column name="deleted" type="boolean" defaultValue="false">
+                <constraints nullable="false"/>
+            </column>
+
+            <column name="deleted_at" type="timestamptz"/>
+
             <column name="created_at" type="timestamptz" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -79,10 +87,20 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <!-- Unique index parziale su ISBN solo per i record attivi (deleted = false) -->
+        <createIndex indexName="ux_books_isbn_active"
+                    tableName="books"
+                    unique="true">
+            <column name="isbn"/>
+            <where>deleted = false</where>
+        </createIndex>
+
         <rollback>
             <dropTable tableName="books"/>
         </rollback>
     </changeSet>
+
 
 
     <changeSet id="003-create_categories_tables" author="Alessandro">

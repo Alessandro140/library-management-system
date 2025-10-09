@@ -7,5 +7,5 @@
 
     <include file="db/changelog/changes/001-create-tables.xml"/>
     <include file="db/changelog/changes/002-insert-initial-data.xml"/>
-    <include file="db/changelog/changes/003-add-isDeleted.xml"/>
+    <include file="db/changelog/changes/003-add-deleted.xml"/>
 </databaseChangeLog>
