@@ -116,7 +116,6 @@ public class BookService {
     public void softDeleteBook(@NonNull Long id) throws BookNotFoundException{
         Book book = this.bookRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new BookNotFoundException(id));
         book.setDeleted(true);
-        this.bookRepository.save(book);
     }
 
     /**
@@ -156,7 +155,6 @@ public class BookService {
         } else{
             bookToUpdate.setAvailable_copies(availableCopies + quantities);
         }
-        this.bookRepository.save(bookToUpdate);
         return this.bookMapper.toDto(bookToUpdate);
     }
 
@@ -169,7 +167,6 @@ public class BookService {
      * @return
      * @throws BookNotFoundException
      * @throws BookHasNotEnoughCopiesException
-     * @throws BookHasTooManyCopiesException
      */
     @Transactional
     public BookDTO updateTotalCopies(@NonNull Long id, Integer quantities)throws BookNotFoundException, BookHasNotEnoughCopiesException{
@@ -182,9 +179,9 @@ public class BookService {
 
         bookToUpdate.setTotal_copies(totalCopies + quantities);
 
-        this.bookRepository.save(bookToUpdate);
         return this.bookMapper.toDto(bookToUpdate);
     }
+
     /**
      * Restore a soft deleted book by its id.
      *
@@ -192,6 +189,7 @@ public class BookService {
      * @return
      * @throws BookNotFoundException
      */
+    @Transactional
     public BookDTO restoreBookById(@NonNull Long id) throws BookNotFoundException{
         Book bookToRestore = this.bookRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new BookNotFoundException(id));
 
@@ -207,6 +205,7 @@ public class BookService {
      * @return
      * @throws BookNotFoundException
      */
+    @Transactional
     public BookDTO restoreBookByISBN(@NonNull String ISBN) throws BookNotFoundException{
         Book bookToRestore = this.bookRepository.findByISBNAndDeletedTrue(ISBN).orElseThrow(() -> new BookNotFoundException(ISBN));
 

@@ -8,6 +8,11 @@ import com.example.library.entity.Book;
 import com.example.library.mapper.BookMapper;
 import com.example.library.repository.BookRepository;
 import com.example.library.service.BookService.BookAlreadyExistsException;
+import com.example.library.service.BookService.BookHasNotEnoughCopiesException;
+import com.example.library.service.BookService.BookHasTooManyCopiesException;
+import com.example.library.service.BookService.BookNotFoundException;
+
+import jakarta.persistence.NamedStoredProcedureQueries;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -204,20 +209,306 @@ public class BookServiceTest {
         @Test
         @DisplayName("should not create book successfully")
         void shouldNotCreateBookSuccessfully() throws BookService.BookAlreadyExistsException {
-            // Stub per simulare libro già esistente
             when(bookRepository.findByISBNAndDeletedFalse(testBookDTO2.getISBN())).thenReturn(Optional.of(testBook2));
 
-            // Verifica che venga lanciata l'eccezione
             assertThatThrownBy(() -> bookService.createBook(testBookDTO2))
                 .isInstanceOf(BookService.BookAlreadyExistsException.class)
                 .hasMessageContaining("Book already exists with ISBN: " + testBookDTO2.getISBN());
 
-            // Verifica le interazioni
             verify(bookRepository).findByISBNAndDeletedFalse(testBookDTO2.getISBN());
             verifyNoMoreInteractions(bookRepository);
         }
 
     }
 
+    @Nested
+    @DisplayName("updateBook")
+    class UpdateBook{
+
+        @Test
+        @DisplayName("should update a book")
+        void shouldUpdateBookSuccessfully() throws BookNotFoundException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+            BookDTO result = bookService.updateBook(testBook.getId(), testBookDTO2);
+
+            testBookDTO2.setId(testBook.getId());
+
+            assertThat(result).isNotNull();
+            assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO2);
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not update the book")
+        void shouldNotUpdateBookSuccessfully() throws BookNotFoundException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
+
+        }
+    }
+
+    @Nested
+    @DisplayName("softDeleteBook")
+    class softDeleteBook{
+
+        @Test
+        @DisplayName("should soft delete the book")
+        void shouldSoftDeleteBookSuccessfully() throws BookNotFoundException{
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+            bookService.softDeleteBook(testBook.getId());
+
+            assertThat(testBook.getDeleted()).isTrue();
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+
+        }
+
+        @Test
+        @DisplayName("should not soft delete a book")
+        void shouldNotSoftDeleteBookSuccessfully() throws BookNotFoundException{
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+
+        }
+    }
+
+    @Nested
+    @DisplayName("deleteBook")
+    class deleteBook{
+
+        @Test
+        @DisplayName("should successfully delete a book")
+        void shouldDeleteBookSuccessfully() throws BookNotFoundException{
+            when(bookRepository.existsById(testBook.getId())).thenReturn(true);
+
+            bookService.deleteBook(testBook.getId());
+
+
+            verify(bookRepository).existsById(testBook.getId());
+            verify(bookRepository).deleteById(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not successfully delete a book")
+        void shouldNotDeleteBookSuccessfully() throws BookNotFoundException{
+            when(bookRepository.existsById(testBook.getId())).thenReturn(false);
+
+            assertThatThrownBy(() -> bookService.deleteBook(testBook.getId()))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
+
+            verify(bookRepository).existsById(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+    }
+
+    @Nested
+    @DisplayName("updateAvailableCopies")
+    class updateAvailableCopies{
+
+        @Test
+        @DisplayName("should successfully update the available copies of a book")
+        void shouldUpdateAvailableCopiesSuccessfully()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+            BookDTO result = bookService.updateAvailableCopies(testBook.getId(), 1);
+
+            testBookDTO.setAvailable_copies(testBookDTO.getAvailable_copies() + 1);
+
+            assertThat(result).isNotNull();
+            assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not successfully update the available copies of a book, not enough copies")
+        void shouldNotUpdateAvailableCopiesSuccessfullyNotEnough()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+
+            assertThatThrownBy(() -> bookService.updateAvailableCopies(testBook.getId(), -11))
+                .isInstanceOf(BookService.BookHasNotEnoughCopiesException.class)
+                .hasMessageContaining("The book with this id doesn't have enough copies: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not successfully update the available copies of a book, too many copies")
+        void shouldNotUpdateAvailableCopiesSuccessfullyTooMany()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+
+            assertThatThrownBy(() -> bookService.updateAvailableCopies(testBook.getId(), 11))
+                .isInstanceOf(BookService.BookHasTooManyCopiesException.class)
+                .hasMessageContaining("The book with this id has more available copies then total: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not successfully update the available copies of a book, not found")
+        void shouldNotUpdateAvailableCopiesSuccessfullyNotFound()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+
+
+            assertThatThrownBy(() -> bookService.updateAvailableCopies(testBook.getId(), 11))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+    }
+    @Nested
+    @DisplayName("update total copies")
+    class updateTotalCopies{
+
+        @Test
+        @DisplayName("should successfully update total copies")
+        void shouldUpdateTotalCopiesSuccessfully() throws BookNotFoundException, BookHasNotEnoughCopiesException{
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+            BookDTO result = bookService.updateTotalCopies(testBook.getId(), 11);
+
+            testBookDTO.setTotal_copies(testBookDTO.getTotal_copies()+11);
+
+            assertThat(result).isNotNull();
+            assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not successfully update the total copies of a book, not found")
+        void shouldNotUpdateTotalCopiesSuccessfullyNotFound()throws BookNotFoundException, BookHasNotEnoughCopiesException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+
+
+            assertThatThrownBy(() -> bookService.updateTotalCopies(testBook.getId(), 11))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not successfully update the total copies of a book, not enough copies")
+        void shouldNotUpdateTotalCopiesSuccessfullyNotEnough()throws BookNotFoundException, BookHasNotEnoughCopiesException {
+            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+
+
+            assertThatThrownBy(() -> bookService.updateTotalCopies(testBook.getId(), -110))
+                .isInstanceOf(BookService.BookHasNotEnoughCopiesException.class)
+                .hasMessageContaining("The book with this id doesn't have enough copies: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+    }
+
+    @Nested
+    @DisplayName("restore book by id")
+    class restoreBookById{
+
+        @Test
+        @DisplayName("should restore book by id successfully")
+        void shouldRestoreBookByIdSuccessfully() throws BookNotFoundException {
+
+            testBook.setDeleted(true);
+            Book spiedBook = spy(testBook);
+
+            when(bookRepository.findByIdAndDeletedTrue(testBook.getId()))
+                    .thenReturn(Optional.of(spiedBook));    // <-- RETURN lo spy!
+
+            BookDTO result = bookService.restoreBookById(testBook.getId());
+
+            assertThat(result).isNotNull();
+            assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
+
+            verify(spiedBook).setDeleted(false);
+
+            verify(bookRepository).findByIdAndDeletedTrue(testBook.getId());
+
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not restore a book, not found")
+        void shouldNotRestoreSuccessfullyNotFound()throws BookNotFoundException {
+            when(bookRepository.findByIdAndDeletedTrue(testBook.getId())).thenReturn(Optional.empty());
+
+
+            assertThatThrownBy(() -> bookService.restoreBookById(testBook.getId()))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
+
+            verify(bookRepository).findByIdAndDeletedTrue(testBook.getId());
+            verifyNoMoreInteractions(bookRepository);
+        }
+    }
+
+    @Nested
+    @DisplayName("restore book by ISBN")
+    class restoreBookByISBN{
+
+        @Test
+        @DisplayName("should restore book by ISBN successfully")
+        void shouldRestoreBookByIdSuccessfully() throws BookNotFoundException {
+
+            testBook.setDeleted(true);
+            Book spiedBook = spy(testBook);
+
+            when(bookRepository.findByISBNAndDeletedTrue(testBook.getISBN()))
+                    .thenReturn(Optional.of(spiedBook));
+
+            BookDTO result = bookService.restoreBookByISBN(testBook.getISBN());
+
+            assertThat(result).isNotNull();
+            assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
+
+            verify(spiedBook).setDeleted(false);
+
+            verify(bookRepository).findByISBNAndDeletedTrue(testBook.getISBN());
+
+            verifyNoMoreInteractions(bookRepository);
+        }
+
+        @Test
+        @DisplayName("should not restore a book, not found")
+        void shouldNotRestoreSuccessfullyNotFound()throws BookNotFoundException {
+            when(bookRepository.findByISBNAndDeletedTrue(testBook.getISBN())).thenReturn(Optional.empty());
+
+
+            assertThatThrownBy(() -> bookService.restoreBookByISBN(testBook.getISBN()))
+                .isInstanceOf(BookService.BookNotFoundException.class)
+                .hasMessageContaining("Book doesn't exist with id: " + testBook.getISBN());
+
+            verify(bookRepository).findByISBNAndDeletedTrue(testBook.getISBN());
+            verifyNoMoreInteractions(bookRepository);
+        }
+    }
 
 }
