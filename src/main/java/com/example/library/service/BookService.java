@@ -50,7 +50,7 @@ public class BookService {
      * @param ISBN the id of the book
      * @return an optional with the book if found, empty otherwise
      */
-    public @NonNull Optional<BookDTO> getBookById(@NonNull String ISBN){
+    public @NonNull Optional<BookDTO> getBookByISBN(@NonNull String ISBN){
 
         return this.bookRepository.findByISBNAndDeletedFalse(ISBN).map(this.bookMapper::toDto);
     }

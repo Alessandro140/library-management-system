@@ -51,24 +51,24 @@ class AuthorServiceTest {
         @Test
         @DisplayName("should return author when found")
         void shouldReturnAuthorWhenFound() {
-            when(authorRepository.findById(1L)).thenReturn(Optional.of(testAuthor));
+            when(authorRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAuthor));
 
             Optional<AuthorDTO> result = authorService.getAuthorById(1L);
 
             assertThat(result).isPresent();
             assertThat(result.get()).usingRecursiveComparison().isEqualTo(testAuthorDTO);
-            verify(authorRepository).findById(1L);
+            verify(authorRepository).findByIdAndDeletedFalse(1L);
         }
 
         @Test
         @DisplayName("should return empty when author not found")
         void shouldReturnEmptyWhenAuthorNotFound() {
-            when(authorRepository.findById(1L)).thenReturn(Optional.empty());
+            when(authorRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.empty());
 
             Optional<AuthorDTO> result = authorService.getAuthorById(1L);
 
             assertThat(result).isEmpty();
-            verify(authorRepository).findById(1L);
+            verify(authorRepository).findByIdAndDeletedFalse(1L);
         }
     }
 }

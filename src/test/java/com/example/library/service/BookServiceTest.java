@@ -193,7 +193,7 @@ public class BookServiceTest {
 
         @Test
         @DisplayName("should create book successfully")
-        void shouldCreateBookSuccessfully() throws BookService.BookAlreadyExistsException{
+        void shouldCreateBookSuccessfully() throws BookAlreadyExistsException{
         	when(bookRepository.findByISBNAndDeletedFalse(testBookDTO2.getISBN())).thenReturn(Optional.empty());
             when(bookRepository.save(any(Book.class))).thenReturn(testBook2);
 
@@ -208,11 +208,11 @@ public class BookServiceTest {
 
         @Test
         @DisplayName("should not create book successfully")
-        void shouldNotCreateBookSuccessfully() throws BookService.BookAlreadyExistsException {
+        void shouldNotCreateBookSuccessfully() throws BookAlreadyExistsException {
             when(bookRepository.findByISBNAndDeletedFalse(testBookDTO2.getISBN())).thenReturn(Optional.of(testBook2));
 
             assertThatThrownBy(() -> bookService.createBook(testBookDTO2))
-                .isInstanceOf(BookService.BookAlreadyExistsException.class)
+                .isInstanceOf(BookAlreadyExistsException.class)
                 .hasMessageContaining("Book already exists with ISBN: " + testBookDTO2.getISBN());
 
             verify(bookRepository).findByISBNAndDeletedFalse(testBookDTO2.getISBN());
