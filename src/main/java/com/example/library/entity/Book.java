@@ -23,8 +23,8 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-@EqualsAndHashCode(callSuper = true)
+@ToString(exclude = {"categories", "loans", "author"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @Entity
 @Table(name = "books")
 public class Book extends Auditable{
@@ -53,13 +53,13 @@ public class Book extends Auditable{
      * The ISBN of the book. Must be unique and 13 characters long.
      */
     @Column(nullable = false, length = 13)
-    private String ISBN;
+    private String isbn;
 
     /**
      * The author of the book.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "authorId", nullable = false)
+    @JoinColumn(name = "author_id", nullable = false)
     private Author author;
 
     /**

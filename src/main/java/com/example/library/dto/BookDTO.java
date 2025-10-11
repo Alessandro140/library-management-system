@@ -50,13 +50,13 @@ public class BookDTO {
      */
     @NotNull
     @Size(min = 13, max = 13, message = "ISBN must be exactly 13 characters long")
-    public String ISBN;
+    public String isbn;
 
     /**
      * The author of the book.
      */
     @NotNull(message = "Author cannot be null")
-    public long authorId;
+    public long author_id;
 
     /**
      * Published date of the book.

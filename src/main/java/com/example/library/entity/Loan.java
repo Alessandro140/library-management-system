@@ -44,20 +44,20 @@ public class Loan extends Auditable {
      * The user who made the loan.
      */
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "userId", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     /**
      * The date when the loan was made.
      */
     @Column(nullable = false)
-    private LocalDate loanDate;
+    private LocalDate loan_date;
 
     /**
      * The due date for returning the loaned books.
      */
     @Column(nullable = false)
-    private LocalDate dueDate;
+    private LocalDate due_date;
 
     /**
      * The status of the loan.

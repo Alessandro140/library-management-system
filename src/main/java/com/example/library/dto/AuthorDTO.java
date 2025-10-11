@@ -31,21 +31,21 @@ public class AuthorDTO{
      */
     @NotNull
     @Size(min = 1, max = 255, message = "First name must be between 1 and 255 characters")
-    public String firstName;
+    public String first_name;
 
     /**
      * The last name of the author.
      */
     @NotNull
     @Size(min = 1, max = 255, message = "Last name must be between 1 and 255 characters")
-    public String lastName;
+    public String last_name;
 
     /**
      * The birth date of the author.
      */
     @NotNull
     @Past(message = "Birth date must be in the past")
-    public LocalDate birthDate;
+    public LocalDate birth_date;
 
     /**
      * The books written by the author.

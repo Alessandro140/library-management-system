@@ -6,6 +6,7 @@ import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.AuthorMapper;
 import com.example.library.repository.AuthorRepository;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,7 @@ public class AuthorService {
      * @param pageable
      * @return A page with all the authors
      */
-    public @NonNull Page<AuthorDTO> getAuthors(Specification<Author> authorSpecification, @NonNull Pageable pageable){
+    public @NonNull Page<AuthorDTO> getAuthors(@Nullable Specification<Author> authorSpecification, @NonNull Pageable pageable){
 
         Specification<Author> notDeletedSpec = (root, query, criteriaBuilder) ->
             criteriaBuilder.isFalse(root.get("deleted"));

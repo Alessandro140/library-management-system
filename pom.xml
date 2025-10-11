@@ -69,9 +69,8 @@
     </dependency>
 
     <dependency>
-      <groupId>jakarta.annotation</groupId>
-      <artifactId>jakarta.annotation-api</artifactId>
-      <version>3.0.0</version>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
     </dependency>
 
     <dependency>
@@ -83,7 +82,7 @@
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
-      <scope>runtime</scope>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -97,6 +96,19 @@
       <artifactId>spring-boot-starter-test</artifactId>
       <scope>test</scope>
     </dependency>
+
+    <!-- Swagger/OpenAPI dependency for Spring Boot -->
+    <dependency>
+        <groupId>org.springdoc</groupId>
+        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+        <version>2.2.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.liquibase</groupId>
+      <artifactId>liquibase-core</artifactId>
+      <version>4.24.0</version> <!-- va bene la versione stabile più recente -->
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -137,6 +149,19 @@
               <version>${mapstruct.version}</version>
             </path>
           </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <version>3.0.0-M8</version> <!-- versione recente consigliata -->
+        <configuration>
+          <!-- usa classpath tradizionale, non module-path (importante per JDK 9+) -->
+          <useModulePath>false</useModulePath>
+          <!-- (opzionale) mostra più log dei test -->
+          <printSummary>true</printSummary>
+          <forkCount>1</forkCount>
+          <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
 

@@ -71,8 +71,8 @@ public class LoanService {
         loanDTO.setId(null);
 
         Loan loanToSave = this.loanMapper.toEntity(loanDTO);
-        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUserId()));
+        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUser_id())
+                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUser_id()));
         loanToSave.setUser(user);
         Loan savedLoan = this.loanRepository.save(loanToSave);
 
@@ -95,8 +95,8 @@ public class LoanService {
 
         this.loanMapper.updateLoan(loanDTO, loanToModify);
 
-        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUserId()));
+        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUser_id())
+                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUser_id()));
         loanToModify.setUser(user);
 
         return this.loanMapper.toDto(loanToModify);

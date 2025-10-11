@@ -14,15 +14,6 @@
         </rollback>
     </changeSet>
 
-    <changeSet id="002-add_books" author="Alessandro">
-        <addColumn tableName="books">
-            <column name="deleted" type="boolean" defaultValueBoolean="false"/>
-        </addColumn>
-        <rollback>
-            <dropColumn tableName="books" columnName="deleted"/>
-        </rollback>
-    </changeSet>
-
     <changeSet id="003-add_category" author="Alessandro">
         <addColumn tableName="categories">
             <column name="deleted" type="boolean" defaultValueBoolean="false"/>

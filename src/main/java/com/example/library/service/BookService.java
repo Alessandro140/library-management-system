@@ -44,20 +44,21 @@ public class BookService {
      * @param id the id of the book
      * @return an optional with the book if found, empty otherwise
      */
+    @Transactional
     public @NonNull Optional<BookDTO> getBookById(@NonNull Long id){
 
         return this.bookRepository.findByIdAndDeletedFalse(id).map(this.bookMapper::toDto);
     }
 
      /**
-     * Get a single book by its ISBN.
+     * Get a single book by its Isbn.
      *
-     * @param ISBN the id of the book
+     * @param Isbn the id of the book
      * @return an optional with the book if found, empty otherwise
      */
-    public @NonNull Optional<BookDTO> getBookByISBN(@NonNull String ISBN){
+    public @NonNull Optional<BookDTO> getBookByIsbn(@NonNull String Isbn){
 
-        return this.bookRepository.findByISBNAndDeletedFalse(ISBN).map(this.bookMapper::toDto);
+        return this.bookRepository.findByIsbnAndDeletedFalse(Isbn).map(this.bookMapper::toDto);
     }
 
     public Page<BookDTO> getBooks(@Nullable Specification<Book> bookSpecification, @NonNull Pageable pageable){
@@ -84,14 +85,14 @@ public class BookService {
      */
     @Transactional
     public @NonNull BookDTO createBook(@NonNull BookDTO bookDTO) throws BookAlreadyExistsException, AuthorNotFoundException{
-        if(this.bookRepository.findByISBNAndDeletedFalse(bookDTO.getISBN()).isPresent()){
-            throw new BookAlreadyExistsException(bookDTO.getISBN());
+        if(this.bookRepository.findByIsbnAndDeletedFalse(bookDTO.getIsbn()).isPresent()){
+            throw new BookAlreadyExistsException(bookDTO.getIsbn());
         }
 
         bookDTO.setId(null);
         Book book = this.bookMapper.toEntity(bookDTO);
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId())
-                .orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthor_id())
+                .orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthor_id()));
         book.setAuthor(author);
         Book savedBook = this.bookRepository.save(book);
 
@@ -107,11 +108,15 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException, AuthorNotFoundException {
+    public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
+        if(this.bookRepository.findByIsbnAndDeletedFalse(bookDTO.getIsbn()).isPresent()){
+            throw new BookAlreadyExistsException(bookDTO.getIsbn());
+        }
+
         Book book = this.bookRepository.findByIdAndDeletedFalse(id).
                 orElseThrow(() -> new BookNotFoundException(id));
 
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId()).orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthor_id()).orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthor_id()));
         this.bookMapper.updateBook(bookDTO, book);
         book.setAuthor(author);
         return this.bookMapper.toDto(book);
@@ -215,16 +220,16 @@ public class BookService {
     }
 
     /**
-     * Restore a soft deleted book by its ISBN.
+     * Restore a soft deleted book by its Isbn.
      *
-     * @param ISBN
+     * @param Isbn
      * @return
      * @throws BookNotFoundException
      */
     @Transactional
-    public BookDTO restoreBookByISBN(@NonNull String ISBN) throws BookNotFoundException{
-        Book bookToRestore = this.bookRepository.findByISBNAndDeletedTrue(ISBN)
-                .orElseThrow(() -> new BookNotFoundException(ISBN));
+    public BookDTO restoreBookByIsbn(@NonNull String Isbn) throws BookNotFoundException{
+        Book bookToRestore = this.bookRepository.findByIsbnAndDeletedTrue(Isbn)
+                .orElseThrow(() -> new BookNotFoundException(Isbn));
 
         bookToRestore.setDeleted(false);
 
@@ -236,12 +241,12 @@ public class BookService {
      */
     public static class BookAlreadyExistsException extends RepositoryException.Conflict {
         /**
-         * Creates a new BookAlreadyExistsException with the given ISBN.
+         * Creates a new BookAlreadyExistsException with the given Isbn.
          *
-         * @param isbn - the ISBN of the book
+         * @param Isbn - the Isbn of the book
          */
-        public BookAlreadyExistsException(@NotNull String isbn) {
-            super("Book already exists with ISBN: " + isbn);
+        public BookAlreadyExistsException(@NotNull String Isbn) {
+            super("Book already exists with Isbn: " + Isbn);
         }
     }
 
@@ -250,9 +255,9 @@ public class BookService {
      */
     public static class BookHasNotEnoughCopiesException extends RepositoryException.Conflict {
         /**
-         * Creates a new BookAlreadyExistsException with the given ISBN.
+         * Creates a new BookAlreadyExistsException with the given Isbn.
          *
-         * @param id - the ISBN of the book
+         * @param id - the Isbn of the book
          */
         public BookHasNotEnoughCopiesException(@NotNull Long id) {
             super("The book with this id doesn't have enough copies: " + id);
@@ -264,9 +269,9 @@ public class BookService {
      */
     public static class BookHasTooManyCopiesException extends RepositoryException.Conflict {
         /**
-         * Creates a new BookAlreadyExistsException with the given ISBN.
+         * Creates a new BookAlreadyExistsException with the given Isbn.
          *
-         * @param id - the ISBN of the book
+         * @param id - the Isbn of the book
          */
         public BookHasTooManyCopiesException(@NotNull Long id) {
             super("The book with this id has more available copies then total: " + id);
@@ -279,19 +284,19 @@ public class BookService {
         /**
          * Creates a new BookNotFoundException with the given id.
          *
-         * @param isbn - the ISBN of the book
+         * @param Isbn - the Isbn of the book
          */
         public BookNotFoundException(@NotNull Long id) {
             super("Book doesn't exist with id: " + id);
         }
 
         /**
-         * Creates a new BookNotFoundException with the given ISBN.
+         * Creates a new BookNotFoundException with the given Isbn.
          *
-         * @param isbn - the ISBN of the book
+         * @param Isbn - the Isbn of the book
          */
-        public BookNotFoundException(@NotNull String ISBN) {
-            super("Book doesn't exist with id: " + ISBN);
+        public BookNotFoundException(@NotNull String Isbn) {
+            super("Book doesn't exist with id: " + Isbn);
         }
 
     }

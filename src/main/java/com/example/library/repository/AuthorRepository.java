@@ -30,13 +30,4 @@ public interface AuthorRepository extends JpaRepository<Author, Long>, JpaSpecif
 	 * @return an optional with the author if found, empty otherwise
 	 */
 	Optional<Author> findByIdAndDeletedTrue(Long id);
-
-	/**
-	 * Search author by name and surname.
-	 *
-	 * @param firstName
-	 * @param lastName
-	 * @return an optional with the author if found, empty otherwise
-	 */
-	Optional<Author> findByFirstNameAndLastNameAndDeletedFalse(String firstName, String lastName);
 }

@@ -7,14 +7,14 @@
 
     <changeSet id="001-add_authors" author="Alessandro">
         <insert tableName="authors">
-            <column name="firstName" value="John"/>
-            <column name="lastName" value="Doe"/>
-            <column name="birthDate" value="1970-01-01"/>
+            <column name="first_name" value="John"/>
+            <column name="last_name" value="Doe"/>
+            <column name="birth_date" value="1970-01-01"/>
         </insert>
         <insert tableName="authors">
-            <column name="firstName" value="Jane"/>
-            <column name="lastName" value="Smith"/>
-            <column name="birthDate" value="1980-05-15"/>
+            <column name="first_name" value="Jane"/>
+            <column name="last_name" value="Smith"/>
+            <column name="birth_date" value="1980-05-15"/>
         </insert>
     </changeSet>
 
@@ -23,16 +23,16 @@
         <insert tableName="books">
             <column name="title" value="Sample Book 1"/>
             <column name="description" value="This is a sample book description."/>
-            <column name="ISBN" value="1234567890123"/>
-            <column name="authorId" valueNumeric="1"/>
+            <column name="isbn" value="1234567890123"/>
+            <column name="author_id" valueNumeric="1"/>
             <column name="published_date" value="2000-01-01"/>
             <column name="total_copies" valueNumeric="5"/>
             <column name="available_copies" valueNumeric="5"/>
         </insert>
         <insert tableName="books">
             <column name="title" value="Sample Book 2"/>
-            <column name="ISBN" value="0000000000000"/>
-            <column name="authorId" valueNumeric="2"/>
+            <column name="isbn" value="0000000000000"/>
+            <column name="author_id" valueNumeric="2"/>
             <column name="published_date" value="2000-01-01"/>
             <column name="total_copies" valueNumeric="3"/>
             <column name="available_copies" valueNumeric="1"/>
@@ -80,14 +80,14 @@
 
     <changeSet id="006-add_loans" author="Alessandro">
         <insert tableName="loans">
-            <column name="userId" valueNumeric="1"/>
-            <column name="loanDate" value="2023-01-01"/>
-            <column name="dueDate" value="2023-01-15"/>
+            <column name="user_id" valueNumeric="1"/>
+            <column name="loan_date" value="2023-01-01"/>
+            <column name="due_date" value="2023-01-15"/>
         </insert>
         <insert tableName="loans">
-            <column name="userId" valueNumeric="2"/>
-            <column name="loanDate" value="2023-02-01"/>
-            <column name="dueDate" value="2023-02-15"/>
+            <column name="user_id" valueNumeric="2"/>
+            <column name="loan_date" value="2023-02-01"/>
+            <column name="due_date" value="2023-02-15"/>
         </insert>
     </changeSet>
 </databaseChangeLog>

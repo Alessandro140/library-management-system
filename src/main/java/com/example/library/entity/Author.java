@@ -37,23 +37,24 @@ public class Author extends Auditable {
      * The first name of the author.
      */
     @Column(nullable = false, length = 255)
-    private String firstName;
+    private String first_name;
 
     /**
      * The last name of the author.
      */
     @Column(nullable = false, length = 255)
-    private String lastName;
+    private String last_name;
 
     /**
      * The birth date of the author.
      */
     @Column(nullable = false)
-    private LocalDate birthDate;
+    private LocalDate birth_date;
     /**
      * The books written by the author.
      */
     @OneToMany(mappedBy = "author", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private Set<Book> books = new HashSet<>();
     /**
      * Indicates whether the author is deleted (soft delete).

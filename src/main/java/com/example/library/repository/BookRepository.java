@@ -18,7 +18,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 	 * @param isbn the ISBN of the book
 	 * @return an optional with the book if found, empty otherwise
 	 */
-	Optional<Book> findByISBNAndDeletedFalse(String isbn);
+	Optional<Book> findByIsbnAndDeletedFalse(String isbn);
 
 
 	/**
@@ -35,7 +35,7 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
 	 * @param isbn the ISBN of the book
 	 * @return an optional with the book if found, empty otherwise
 	 */
-	Optional<Book> findByISBNAndDeletedTrue(String isbn);
+	Optional<Book> findByIsbnAndDeletedTrue(String isbn);
 
 
 	/**
