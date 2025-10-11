@@ -31,6 +31,12 @@ public class UserDTO {
     public String username;
 
     /**
+     * The email of the user. Must be unique.
+     */
+    @NotNull(message = "Email must be not null")
+    private String email;
+
+    /**
      * The role of the user (e.g., ADMIN).
      */
     @NotNull(message = "User role cannot be null")

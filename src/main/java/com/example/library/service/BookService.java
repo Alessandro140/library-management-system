@@ -2,8 +2,10 @@ package com.example.library.service;
 
 import com.example.library.dto.BookDTO;
 import com.example.library.entity.Book;
+import com.example.library.entity.Author;
 import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.BookMapper;
+import com.example.library.repository.AuthorRepository;
 import com.example.library.repository.BookRepository;
 
 import org.slf4j.Logger;
@@ -27,10 +29,13 @@ public class BookService {
 
     private final @NonNull BookRepository bookRepository;
     private final @NonNull BookMapper bookMapper;
+    private final @NonNull AuthorRepository authorRepository;
 
-    public BookService(@NonNull BookRepository bookRepository, @NonNull BookMapper bookMapper){
+    public BookService(@NonNull BookRepository bookRepository, @NonNull BookMapper bookMapper, @NonNull AuthorRepository authorRepository){
         this.bookRepository = bookRepository;
         this.bookMapper = bookMapper;
+        this.authorRepository = authorRepository;
+
     }
 
     /**
@@ -78,14 +83,16 @@ public class BookService {
      * @throws BookAlreadyExistsException if the book already exist
      */
     @Transactional
-    public @NonNull BookDTO createBook(@NonNull BookDTO bookDTO) throws BookAlreadyExistsException{
+    public @NonNull BookDTO createBook(@NonNull BookDTO bookDTO) throws BookAlreadyExistsException, AuthorNotFoundException{
         if(this.bookRepository.findByISBNAndDeletedFalse(bookDTO.getISBN()).isPresent()){
             throw new BookAlreadyExistsException(bookDTO.getISBN());
         }
 
         bookDTO.setId(null);
         Book book = this.bookMapper.toEntity(bookDTO);
-
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId())
+                .orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
+        book.setAuthor(author);
         Book savedBook = this.bookRepository.save(book);
 
         return this.bookMapper.toDto(savedBook);
@@ -100,9 +107,13 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException {
-        Book book = this.bookRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new BookNotFoundException(id));
+    public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException, AuthorNotFoundException {
+        Book book = this.bookRepository.findByIdAndDeletedFalse(id).
+                orElseThrow(() -> new BookNotFoundException(id));
+
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId()).orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
         this.bookMapper.updateBook(bookDTO, book);
+        book.setAuthor(author);
         return this.bookMapper.toDto(book);
     }
 
@@ -114,7 +125,8 @@ public class BookService {
      */
     @Transactional
     public void softDeleteBook(@NonNull Long id) throws BookNotFoundException{
-        Book book = this.bookRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new BookNotFoundException(id));
+        Book book = this.bookRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
         book.setDeleted(true);
     }
 
@@ -146,7 +158,9 @@ public class BookService {
     @Transactional
     public BookDTO updateAvailableCopies(@NonNull Long id, @NonNull Integer quantities) throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
 
-        Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new BookNotFoundException(id));
+        Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
+
         Integer availableCopies = bookToUpdate.getAvailable_copies();
         if(availableCopies + quantities < 0){
             throw new BookHasNotEnoughCopiesException(id);
@@ -170,7 +184,8 @@ public class BookService {
      */
     @Transactional
     public BookDTO updateTotalCopies(@NonNull Long id, Integer quantities)throws BookNotFoundException, BookHasNotEnoughCopiesException{
-        Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new BookNotFoundException(id));
+        Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
         Integer totalCopies = bookToUpdate.getTotal_copies();
 
         if(totalCopies + quantities < 0){
@@ -191,7 +206,8 @@ public class BookService {
      */
     @Transactional
     public BookDTO restoreBookById(@NonNull Long id) throws BookNotFoundException{
-        Book bookToRestore = this.bookRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new BookNotFoundException(id));
+        Book bookToRestore = this.bookRepository.findByIdAndDeletedTrue(id)
+                .orElseThrow(() -> new BookNotFoundException(id));
 
         bookToRestore.setDeleted(false);
 
@@ -207,7 +223,8 @@ public class BookService {
      */
     @Transactional
     public BookDTO restoreBookByISBN(@NonNull String ISBN) throws BookNotFoundException{
-        Book bookToRestore = this.bookRepository.findByISBNAndDeletedTrue(ISBN).orElseThrow(() -> new BookNotFoundException(ISBN));
+        Book bookToRestore = this.bookRepository.findByISBNAndDeletedTrue(ISBN)
+                .orElseThrow(() -> new BookNotFoundException(ISBN));
 
         bookToRestore.setDeleted(false);
 
@@ -256,11 +273,11 @@ public class BookService {
         }
     }
     /**
-     * Exception thrown when a book already exists.
+     * Exception thrown when a book doesn't exists.
      */
     public static class BookNotFoundException extends RepositoryException.NotFound {
         /**
-         * Creates a new BookAlreadyExistsException with the given ISBN.
+         * Creates a new BookNotFoundException with the given id.
          *
          * @param isbn - the ISBN of the book
          */
@@ -269,7 +286,7 @@ public class BookService {
         }
 
         /**
-         * Creates a new BookAlreadyExistsException with the given ISBN.
+         * Creates a new BookNotFoundException with the given ISBN.
          *
          * @param isbn - the ISBN of the book
          */
@@ -277,6 +294,20 @@ public class BookService {
             super("Book doesn't exist with id: " + ISBN);
         }
 
+    }
+
+    /**
+     * Exception thrown when an Author doesn't exists.
+     */
+    public static class AuthorNotFoundException extends RepositoryException.NotFound {
+        /**
+         * Creates a new AuthorNotFoundException with the given id.
+         *
+         * @param id - the id of the author
+         */
+        public AuthorNotFoundException(@NotNull Long id) {
+            super("Author doesn't exist with id: " + id);
+        }
     }
 
 }

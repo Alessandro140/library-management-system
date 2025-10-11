@@ -93,7 +93,8 @@ public class AuthorService {
     @Transactional
     public @NonNull AuthorDTO updateAuthor(@NonNull Long id, @NonNull AuthorDTO authorDTO) throws AuthorNotFoundException{
 
-        Author authorToModify = this.authorRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new AuthorNotFoundException(id));
+        Author authorToModify = this.authorRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new AuthorNotFoundException(id));
 
         this.authorMapper.updateAuthor(authorDTO, authorToModify);
 
@@ -108,7 +109,8 @@ public class AuthorService {
      */
     @Transactional
     public void softDeleteAuthor(@NonNull Long id) throws AuthorNotFoundException{
-        Author author = this.authorRepository.findByIdAndDeletedFalse(id).orElseThrow(() -> new AuthorNotFoundException(id));
+        Author author = this.authorRepository.findByIdAndDeletedFalse(id)
+                .orElseThrow(() -> new AuthorNotFoundException(id));
         author.setDeleted(true);
     }
 
@@ -136,20 +138,22 @@ public class AuthorService {
      */
     @Transactional
     public AuthorDTO restoreAuthorById(@NonNull Long id) throws AuthorNotFoundException{
-        Author authorToRestore = this.authorRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new AuthorNotFoundException(id));
+        Author authorToRestore = this.authorRepository.findByIdAndDeletedTrue(id)
+                .orElseThrow(() -> new AuthorNotFoundException(id));
 
         authorToRestore.setDeleted(false);
 
         return this.authorMapper.toDto(authorToRestore);
     }
+
     /**
      * Exception thrown when a author already exists.
      */
     public static class AuthorNotFoundException extends RepositoryException.NotFound {
         /**
-         * Creates a new AuthorAlreadyExistsException with the given ISBN.
+         * Creates a new AuthorAlreadyExistsException with the given id.
          *
-         * @param isbn - the ISBN of the author
+         * @param id - the id of the author
          */
         public AuthorNotFoundException(@NotNull Long id) {
             super("Author doesn't exist with id: " + id);

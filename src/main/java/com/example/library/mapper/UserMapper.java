@@ -11,7 +11,6 @@ public interface UserMapper {
 
     @IgnoreAuditFields
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "email", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     User toEntity(UserDTO dto);
 
@@ -20,7 +19,6 @@ public interface UserMapper {
     @IgnoreAuditFields
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
-    @Mapping(target = "email", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     User updateUser(UserDTO dto, @MappingTarget User entity);
 }
