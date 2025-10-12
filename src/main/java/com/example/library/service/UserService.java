@@ -5,7 +5,6 @@ import com.example.library.entity.User;
 import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.UserMapper;
 import com.example.library.repository.UserRepository;
-import com.example.library.service.BookService.BookAlreadyExistsException;
 
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -174,12 +173,12 @@ public class UserService {
      */
     public static class UserAlreadyExistsException extends RepositoryException.Conflict {
         /**
-         * Creates a new UserAlreadyExistsException with the given ISBN.
+         * Creates a new UserAlreadyExistsException with the given email.
          *
          * @param email - the email of the book
          */
         public UserAlreadyExistsException(@NotNull String email) {
-            super("User already exists with ISBN: " + email);
+            super("User already exists with email: " + email);
         }
     }
 }

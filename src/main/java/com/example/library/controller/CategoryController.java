@@ -1,8 +1,6 @@
 package com.example.library.controller;
 
 import com.example.library.dto.CategoryDTO;
-import com.example.library.dto.CategoryDTO;
-import com.example.library.service.CategoryService;
 import com.example.library.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -71,17 +69,17 @@ public class CategoryController {
 
 
     /**
-     * Get a paginated list of all categorys in the library. Optional filtering by title and category.
+     * Get a paginated list of all categories in the library.
      *
      * @param title    the title to filter by (case-insensitive, partial match, optional)
      * @param category   the category to filter by (case-insensitive, partial match, optional)
      * @param pageable the Pageable information for pagination (optional, default page: 0, size: 20, sort: name, direction: ASC)
-     * @return a paginated list of categorys
+     * @return a paginated list of categories
      */
     @GetMapping
-    @Operation(summary = "List all categorys", description = "Get a paginated list of all categorys in the library.")
+    @Operation(summary = "List all categories", description = "Get a paginated list of all categories in the library.")
     @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of categorys",
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of categories",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
@@ -131,8 +129,6 @@ public class CategoryController {
                 @ApiResponse(responseCode = "200", description = "Successfully updated the category",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))),
                 @ApiResponse(responseCode = "400", description = "Invalid input",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Category not found",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
                 @ApiResponse(responseCode = "404", description = "Category not found",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))

@@ -83,11 +83,13 @@
             <column name="user_id" valueNumeric="1"/>
             <column name="loan_date" value="2023-01-01"/>
             <column name="due_date" value="2023-01-15"/>
+            <column name="status" value="ACTIVE"/>
         </insert>
         <insert tableName="loans">
             <column name="user_id" valueNumeric="2"/>
             <column name="loan_date" value="2023-02-01"/>
             <column name="due_date" value="2023-02-15"/>
+            <column name="status" value="RETURNED"/>
         </insert>
     </changeSet>
 </databaseChangeLog>
