@@ -5,6 +5,7 @@ import com.example.library.entity.User;
 import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.UserMapper;
 import com.example.library.repository.UserRepository;
+import com.example.library.service.BookService.BookAlreadyExistsException;
 
 import jakarta.validation.constraints.NotNull;
 import org.slf4j.Logger;
@@ -93,10 +94,16 @@ public class UserService {
      * @throws UserNotFoundException
      */
     @Transactional
-    public @NonNull UserDTO updateUser(@NonNull Long id, @NonNull UserDTO userDTO) throws UserNotFoundException{
+    public @NonNull UserDTO updateUser(@NonNull Long id, @NonNull UserDTO userDTO) throws UserNotFoundException, UserAlreadyExistsException{
 
         User userToModify = this.userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
+
+        Optional<User> other = this.userRepository.findByEmailAndDeletedFalse(userDTO.getEmail());
+
+        if (other.isPresent() && !other.get().getId().equals(id)) {
+            throw new UserAlreadyExistsException(userDTO.getEmail());
+        }
 
         this.userMapper.updateUser(userDTO, userToModify);
 

@@ -75,10 +75,10 @@ public class BookServiceTest {
         testAuthor.setLast_name("Tolkien");
         testAuthor.setBirth_date(LocalDate.of(1892, 1, 3));
 
-        testAuthor.setId(2L);
-        testAuthor.setFirst_name("J.K.");
-        testAuthor.setLast_name("Rowling");
-        testAuthor.setBirth_date(LocalDate.of(1965, 7, 31));
+        testAuthor2.setId(2L);
+        testAuthor2.setFirst_name("J.K.");
+        testAuthor2.setLast_name("Rowling");
+        testAuthor2.setBirth_date(LocalDate.of(1965, 7, 31));
 
         // Categories
         category1 = new Category();
@@ -261,6 +261,7 @@ public class BookServiceTest {
         void shouldUpdateBookSuccessfully() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
             when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
             when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthor_id())).thenReturn(Optional.of(testAuthor));
+            when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
 
             BookDTO result = bookService.updateBook(testBook.getId(), testBookDTO2);
 
@@ -270,14 +271,15 @@ public class BookServiceTest {
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO2);
 
             verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
             verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthor_id());
-            verifyNoMoreInteractions(bookRepository);
+            verifyNoMoreInteractions(authorRepository);
         }
 
         @Test
         @DisplayName("should not update the book")
-        void shouldNotUpdateBookSuccessfully() throws BookNotFoundException {
+        void shouldNotUpdateBookSuccessfully() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
             when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
@@ -287,20 +289,22 @@ public class BookServiceTest {
         }
 
         @Test
-        @DisplayName("should update a book")
-        void shouldNotUpdateBookSuccessfullyAuthorNotFound() throws BookNotFoundException, AuthorNotFoundException {
+        @DisplayName("should not update a book")
+        void shouldNotUpdateBookSuccessfullyAuthorNotFound() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
             when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn((Optional.of(testBook)));
             when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthor_id())).thenReturn(Optional.empty());
+            when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
 
             testBookDTO2.setId(testBook.getId());
             assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
                 .isInstanceOf(BookService.AuthorNotFoundException.class)
-                .hasMessageContaining("Author doesn't exist with id: " + testBookDTO.getAuthor_id());
+                .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthor_id());
 
             verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
             verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthor_id());
-            verifyNoMoreInteractions(bookRepository);
+            verifyNoMoreInteractions(authorRepository);
         }
     }
 
@@ -327,7 +331,7 @@ public class BookServiceTest {
         void shouldNotSoftDeleteBookSuccessfully() throws BookNotFoundException{
             when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
 
-            assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
+            assertThatThrownBy(() -> bookService.softDeleteBook(testBook.getId()))
                 .isInstanceOf(BookService.BookNotFoundException.class)
                 .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
 

@@ -109,14 +109,19 @@ public class BookService {
      */
     @Transactional
     public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
-        if(this.bookRepository.findByIsbnAndDeletedFalse(bookDTO.getIsbn()).isPresent()){
-            throw new BookAlreadyExistsException(bookDTO.getIsbn());
-        }
 
         Book book = this.bookRepository.findByIdAndDeletedFalse(id).
                 orElseThrow(() -> new BookNotFoundException(id));
 
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthor_id()).orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthor_id()));
+        Optional<Book> other = this.bookRepository.findByIsbnAndDeletedFalse(bookDTO.getIsbn());
+
+        if (other.isPresent() && !other.get().getId().equals(id)) {
+            throw new BookAlreadyExistsException(bookDTO.getIsbn());
+        }
+
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthor_id()).
+                orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthor_id()));
+
         this.bookMapper.updateBook(bookDTO, book);
         book.setAuthor(author);
         return this.bookMapper.toDto(book);
