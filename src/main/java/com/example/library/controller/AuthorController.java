@@ -3,6 +3,7 @@ package com.example.library.controller;
 import com.example.library.dto.AuthorDTO;
 import com.example.library.entity.Author;
 import com.example.library.service.AuthorService;
+import com.example.library.service.AuthorService.BookNotFoundException;
 import com.example.library.specification.AuthorSpecification;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -106,14 +107,19 @@ public class AuthorController {
             @ApiResponse(responseCode = "200", description = "Successfully created the author",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthorDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "Book not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
                 })
     public ResponseEntity<?> createAuthor(
             @Parameter(description = "Author to add to the library", required = true) @NonNull
             @Valid @RequestBody AuthorDTO authorDTO) {
-
-            return ResponseEntity.ok(this.authorService.createAuthor(authorDTO));
-
+            try{
+                return ResponseEntity.ok(this.authorService.createAuthor(authorDTO));
+            } catch(BookNotFoundException e) {
+                return e.toResponseEntity();
+            }
     }
 
         /**
@@ -132,7 +138,7 @@ public class AuthorController {
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
                 @ApiResponse(responseCode = "404", description = "Author not found",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Author not found",
+                @ApiResponse(responseCode = "404", description = "Book not found",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
         })
         public ResponseEntity<?> updateAuthor(
@@ -145,7 +151,7 @@ public class AuthorController {
         ) {
             try {
                 return ResponseEntity.ok(this.authorService.updateAuthor(id, authorDTO));
-            } catch (AuthorService.AuthorNotFoundException e) {
+            } catch (AuthorService.AuthorNotFoundException | BookNotFoundException e) {
                 return e.toResponseEntity();
             }
         }

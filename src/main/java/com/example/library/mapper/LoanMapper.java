@@ -2,6 +2,7 @@ package com.example.library.mapper;
 
 import com.example.library.dto.LoanDTO;
 import com.example.library.entity.Loan;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -22,5 +23,4 @@ public interface LoanMapper {
     @Mapping(target = "user", ignore = true)
     @IgnoreAuditFields
     Loan updateLoan(LoanDTO dto, @MappingTarget Loan entity);
-
 }

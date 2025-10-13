@@ -10,8 +10,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Represents a loan in the library system.
@@ -38,7 +38,7 @@ public class Loan extends Auditable {
      * The books that are associated with this loan.
      */
     @ManyToMany(fetch = FetchType.LAZY, mappedBy = "loans")
-    private final Set<Book> books = new HashSet<>();
+    private List<Book> books = new ArrayList<>();
 
     /**
      * The user who made the loan.

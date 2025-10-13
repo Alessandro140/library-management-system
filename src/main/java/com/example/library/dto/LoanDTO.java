@@ -7,8 +7,8 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.example.library.entity.LoanStatus;
 
@@ -56,6 +56,6 @@ public class LoanDTO {
     /**
      * The books associated with the loan
      */
-    public Set<BookDTO> books = new HashSet<>();
+    public List<BookDTO> books = new ArrayList<BookDTO>();
 
 }

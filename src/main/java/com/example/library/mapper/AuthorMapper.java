@@ -6,17 +6,18 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-@Mapper(componentModel = "spring", uses = {BookMapper.class})
+
+@Mapper(componentModel = "spring", uses = BookMapper.class)
 public interface AuthorMapper {
-
-    @IgnoreAuditFields
-    @Mapping(target = "deleted", ignore = true)
-    Author toEntity(AuthorDTO dto);
-
-    AuthorDTO toDto(Author entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "deleted", ignore = true)
     @IgnoreAuditFields
     Author updateAuthor(AuthorDTO dto, @MappingTarget Author entity);
+
+    AuthorDTO toDto(Author entity);
+
+    @Mapping(target = "deleted", ignore = true)
+    @IgnoreAuditFields
+    Author toEntity(AuthorDTO dto);
 }

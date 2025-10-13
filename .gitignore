@@ -59,3 +59,5 @@ mvnw.cmd
 gradle/
 gradlew
 gradlew.bat
+
+.txt

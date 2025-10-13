@@ -1,7 +1,10 @@
 package com.example.library.controller;
 
 import com.example.library.dto.LoanDTO;
+import com.example.library.entity.Loan;
 import com.example.library.service.LoanService;
+import com.example.library.specification.LoanSpecification;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,9 +18,11 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -84,11 +89,15 @@ public class LoanController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Page<LoanDTO>> getAllLoan(
+            @Parameter(description = "Filter Loans by status (case-insensitive, partial match)")
+            @RequestParam(required = false) @Nullable
+            String status,
             @Parameter(description = "Pageable information for pagination") @ParameterObject
             @PageableDefault(size = 20, sort = "status", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable) {
 
-        return ResponseEntity.ok(this.loanService.getLoans(null, pageable));
+        Specification<Loan> loanSpecification = LoanSpecification.statusLike(status);
+        return ResponseEntity.ok(this.loanService.getLoans(loanSpecification, pageable));
     }
 
     /**
@@ -123,11 +132,51 @@ public class LoanController {
 
             return ResponseEntity.ok(this.loanService.createLoan(loanDTO));
 
-        } catch (LoanService.UserNotFoundException | LoanService.BookNotFoundException |
-                LoanService.BookHasNotEnoughCopiesException e) {
+        } catch (LoanService.BookNotFoundException |LoanService.BookHasNotEnoughCopiesException
+                        | LoanService.UserNotFoundException e) {
             return e.toResponseEntity();
         }
     }
+
+        /**
+         * Update an existing loan in the library.
+         *
+         * @param id      the id of the loan to update
+         * @param loanDTO the loan data to update
+         * @return the updated loan
+         */
+        @PutMapping("/{id}")
+        @Operation(summary = "Update a loan", description = "Update an existing loan in the library")
+        @ApiResponses({
+                @ApiResponse(responseCode = "200", description = "Successfully updated the loan",
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoanDTO.class))),
+                @ApiResponse(responseCode = "400", description = "Invalid input",
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+                @ApiResponse(responseCode = "404", description = "Loan not found",
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+                @ApiResponse(responseCode = "404", description = "Book not found",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+                @ApiResponse(responseCode = "404", description = "User not found",
+                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+                @ApiResponse(responseCode = "409", description = "Book has not enough copies",
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+        })
+        public ResponseEntity<?> updateLoan(
+                @Parameter(description = "ID of the loan to update", required = true) @NonNull
+                @PathVariable
+                Long id,
+                @Parameter(description = "Updated loan information", required = true) @NonNull
+                @Valid @RequestBody
+                LoanDTO loanDTO
+        ) {
+            try {
+                return ResponseEntity.ok(this.loanService.updateLoan(id, loanDTO));
+            } catch (LoanService.LoanNotFoundException | LoanService.UserNotFoundException |
+                LoanService.BookHasNotEnoughCopiesException | LoanService.BookNotFoundException e) {
+                return e.toResponseEntity();
+            }
+        }
+
 
     /**
      * Delete a loan from the library.

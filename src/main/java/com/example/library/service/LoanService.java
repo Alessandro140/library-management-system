@@ -22,10 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -87,9 +85,9 @@ public class LoanService {
 
         List<Book> books = bookRepository.findAllByIdInForUpdate(ids);
 
-        Set<Long> foundIds = books.stream()
+        List<Long> foundIds = books.stream()
                 .map(Book::getId)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
 
         List<Long> missingIds = ids.stream()
                 .distinct()
@@ -106,7 +104,7 @@ public class LoanService {
             }
             book.setAvailableCopies(book.getAvailableCopies() - 1);
         }
-        Set<Book> loanBooks = new HashSet<>(books);
+        List<Book> loanBooks = new ArrayList<>(books);
         loanToSave.getBooks().clear();
         loanToSave.getBooks().addAll(loanBooks);
 
@@ -128,17 +126,16 @@ public class LoanService {
      * @throws LoanNotFoundException
      */
     @Transactional
-    public @NonNull LoanDTO updateLoan(@NonNull Long id, @NonNull LoanDTO loanDTO) throws LoanNotFoundException, UserNotFoundException{
+    public @NonNull LoanDTO updateLoan(@NonNull Long id, @NonNull LoanDTO loanDTO)
+            throws LoanNotFoundException, UserNotFoundException,
+                BookHasNotEnoughCopiesException, BookNotFoundException {
 
         Loan loanToModify = this.loanRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new LoanNotFoundException(id));
 
+
+        // aggiorna campi generici del loan (usa il mapper)
         this.loanMapper.updateLoan(loanDTO, loanToModify);
-
-        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUserId())
-                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUserId()));
-        loanToModify.setUser(user);
-
         return this.loanMapper.toDto(loanToModify);
     }
 
