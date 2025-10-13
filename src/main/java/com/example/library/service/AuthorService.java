@@ -5,11 +5,10 @@ import com.example.library.entity.Author;
 import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.AuthorMapper;
 import com.example.library.repository.AuthorRepository;
+import com.example.library.specification.SpecsNotDeleted;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -54,16 +53,9 @@ public class AuthorService {
      */
     public @NonNull Page<AuthorDTO> getAuthors(@Nullable Specification<Author> authorSpecification, @NonNull Pageable pageable){
 
-        Specification<Author> notDeletedSpec = (root, query, criteriaBuilder) ->
-            criteriaBuilder.isFalse(root.get("deleted"));
+        Specification<Author> specAuthor = SpecsNotDeleted.ensureNotDeleted(authorSpecification);
 
-        if (authorSpecification != null) {
-            authorSpecification = authorSpecification.and(notDeletedSpec);
-        } else {
-            authorSpecification = notDeletedSpec;
-        }
-
-        return authorRepository.findAll(authorSpecification, pageable).map(this.authorMapper::toDto);
+        return authorRepository.findAll(specAuthor, pageable).map(this.authorMapper::toDto);
     }
 
     /**

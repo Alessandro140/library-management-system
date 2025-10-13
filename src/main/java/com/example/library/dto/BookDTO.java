@@ -39,12 +39,12 @@ public class BookDTO {
      * The available number of copies of the book in the library.
      */
     @NotNull
-    public int available_copies;
+    public int availableCopies;
     /**
      * The total number of copies of the book in the library.
      */
     @NotNull
-    public int total_copies;
+    public int totalCopies;
     /**
      * The ISBN of the book. Must be unique and 13 characters long.
      */
@@ -56,12 +56,12 @@ public class BookDTO {
      * The author of the book.
      */
     @NotNull(message = "Author cannot be null")
-    public long author_id;
+    public long authorId;
 
     /**
      * Published date of the book.
      */
     @NotNull(message = "Published date cannot be null")
-    public LocalDate published_date;
+    public LocalDate publishedDate;
 
 }

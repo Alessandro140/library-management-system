@@ -9,11 +9,9 @@ import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.LoanMapper;
 import com.example.library.repository.LoanRepository;
 import com.example.library.repository.UserRepository;
-import com.example.library.service.LoanService.LoanNotFoundException;
+import com.example.library.specification.SpecsNotDeleted;
 import com.example.library.repository.BookRepository;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.data.domain.Page;
@@ -60,16 +58,8 @@ public class LoanService {
 
 
     public @NonNull Page<LoanDTO> getLoans(Specification<Loan> loanSpecification, @NonNull Pageable pageable){
-        Specification<Loan> notDeletedSpec = (root, query, criteriaBuilder) ->
-            criteriaBuilder.isFalse(root.get("deleted"));
-
-        if (loanSpecification != null) {
-            loanSpecification = loanSpecification.and(notDeletedSpec);
-        } else {
-            loanSpecification = notDeletedSpec;
-        }
-
-        return loanRepository.findAll(loanSpecification, pageable).map(this.loanMapper::toDto);
+        Specification<Loan> specLoan = SpecsNotDeleted.ensureNotDeleted(loanSpecification);
+        return loanRepository.findAll(specLoan, pageable).map(this.loanMapper::toDto);
 
     }
 
@@ -86,8 +76,8 @@ public class LoanService {
 
         Loan loanToSave = this.loanMapper.toEntity(loanDTO);
 
-        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUser_id())
-                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUser_id()));
+        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUserId())
+                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUserId()));
 
         loanToSave.setUser(user);
         List<Long> ids = new ArrayList<>();
@@ -111,10 +101,10 @@ public class LoanService {
         }
 
         for(Book book : books){
-            if (book.getAvailable_copies() <= 0) {
+            if (book.getAvailableCopies() <= 0) {
                 throw new BookHasNotEnoughCopiesException(book.getId());
             }
-            book.setAvailable_copies(book.getAvailable_copies() - 1);
+            book.setAvailableCopies(book.getAvailableCopies() - 1);
         }
         Set<Book> loanBooks = new HashSet<>(books);
         loanToSave.getBooks().clear();
@@ -145,8 +135,8 @@ public class LoanService {
 
         this.loanMapper.updateLoan(loanDTO, loanToModify);
 
-        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUser_id())
-                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUser_id()));
+        User user = this.userRepository.findByIdAndDeletedFalse(loanDTO.getUserId())
+                .orElseThrow(() -> new UserNotFoundException(loanDTO.getUserId()));
         loanToModify.setUser(user);
 
         return this.loanMapper.toDto(loanToModify);
@@ -166,7 +156,7 @@ public class LoanService {
 
         if (loan.getBooks() != null || !loan.getBooks().isEmpty()) {
             for(Book book : loan.getBooks()){
-                book.setAvailable_copies(book.getAvailable_copies() - 1);
+                book.setAvailableCopies(book.getAvailableCopies() - 1);
                 bookRepository.save(book);
             }
         }
@@ -187,7 +177,7 @@ public class LoanService {
 
         if (loan.getBooks() != null || !loan.getBooks().isEmpty()) {
             for(Book book : loan.getBooks()){
-                book.setAvailable_copies(book.getAvailable_copies() - 1);
+                book.setAvailableCopies(book.getAvailableCopies() - 1);
                 bookRepository.save(book);
             }
         }
@@ -209,7 +199,7 @@ public class LoanService {
 
         if (loanToRestore.getBooks() != null || !loanToRestore.getBooks().isEmpty()) {
             for(Book book : loanToRestore.getBooks()){
-                book.setAvailable_copies(book.getAvailable_copies() - 1);
+                book.setAvailableCopies(book.getAvailableCopies() - 1);
                 bookRepository.save(book);
             }
         }

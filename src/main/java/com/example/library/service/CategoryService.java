@@ -5,9 +5,8 @@ import com.example.library.entity.Category;
 import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.CategoryMapper;
 import com.example.library.repository.CategoryRepository;
+import com.example.library.specification.SpecsNotDeleted;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import jakarta.validation.constraints.NotNull;
 
 import org.springframework.data.domain.Page;
@@ -48,16 +47,10 @@ public class CategoryService {
      * @return the pages of category dto.
      */
     public @NonNull Page<CategoryDTO> getCategories(Specification<Category> categorySpecification, Pageable pageable){
-        Specification<Category> notDeletedSpec = (root, query, criteriaBuilder) ->
-            criteriaBuilder.isFalse(root.get("deleted"));
 
-        if (categorySpecification != null) {
-            categorySpecification = categorySpecification.and(notDeletedSpec);
-        } else {
-            categorySpecification = notDeletedSpec;
-        }
+        Specification<Category> specCategory = SpecsNotDeleted.ensureNotDeleted(categorySpecification);
 
-        return categoryRepository.findAll(categorySpecification, pageable).map(this.categoryMapper::toDto);
+        return categoryRepository.findAll(specCategory, pageable).map(this.categoryMapper::toDto);
     }
 
     /**

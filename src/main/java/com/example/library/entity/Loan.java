@@ -51,13 +51,13 @@ public class Loan extends Auditable {
      * The date when the loan was made.
      */
     @Column(nullable = false)
-    private LocalDate loan_date;
+    private LocalDate loanDate;
 
     /**
      * The due date for returning the loaned books.
      */
     @Column(nullable = false)
-    private LocalDate due_date;
+    private LocalDate dueDate;
 
     /**
      * The status of the loan.

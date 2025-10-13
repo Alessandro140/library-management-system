@@ -39,9 +39,9 @@ class BookRepositoryTest {
     void setUp() {
         // 1) crea e persisti l'autore
         testAuthor = new Author();
-        testAuthor.setFirst_name("J.R.R.");
-        testAuthor.setLast_name("Tolkien");
-        testAuthor.setBirth_date(LocalDate.of(1892, 1, 3));
+        testAuthor.setFirstName("J.R.R.");
+        testAuthor.setLastName("Tolkien");
+        testAuthor.setBirthDate(LocalDate.of(1892, 1, 3));
         testAuthor = entityManager.persist(testAuthor);
 
         // 2) crea e persisti le categorie
@@ -59,9 +59,9 @@ class BookRepositoryTest {
         testBook.setDescription("A book used for test");
         testBook.setIsbn("1234567890123"); // 13 chars, non-null
         testBook.setAuthor(testAuthor); // Author già persist
-        testBook.setTotal_copies(10);
-        testBook.setAvailable_copies(5);
-        testBook.setPublished_date(LocalDate.of(2020, 1, 1));
+        testBook.setTotalCopies(10);
+        testBook.setAvailableCopies(5);
+        testBook.setPublishedDate(LocalDate.of(2020, 1, 1));
         testBook.getCategories().add(category1);
         testBook.getCategories().add(category2);
         testBook.setDeleted(false);
@@ -92,9 +92,9 @@ class BookRepositoryTest {
             assertThat(actual.getAuthor()).isNotNull();
             assertThat(actual.getAuthor().getId()).isEqualTo(testAuthor.getId());
 
-            assertThat(actual.getTotal_copies()).isEqualTo(testBook.getTotal_copies());
-            assertThat(actual.getAvailable_copies()).isEqualTo(testBook.getAvailable_copies());
-            assertThat(actual.getPublished_date()).isEqualTo(testBook.getPublished_date());
+            assertThat(actual.getTotalCopies()).isEqualTo(testBook.getTotalCopies());
+            assertThat(actual.getAvailableCopies()).isEqualTo(testBook.getAvailableCopies());
+            assertThat(actual.getPublishedDate()).isEqualTo(testBook.getPublishedDate());
 
             Set<Long> expectedCatIds = testBook.getCategories().stream()
                     .map(Category::getId).collect(Collectors.toSet());
@@ -120,9 +120,9 @@ class BookRepositoryTest {
             assertThat(actual.getAuthor()).isNotNull();
             assertThat(actual.getAuthor().getId()).isEqualTo(testAuthor.getId());
 
-            assertThat(actual.getTotal_copies()).isEqualTo(testBook.getTotal_copies());
-            assertThat(actual.getAvailable_copies()).isEqualTo(testBook.getAvailable_copies());
-            assertThat(actual.getPublished_date()).isEqualTo(testBook.getPublished_date());
+            assertThat(actual.getTotalCopies()).isEqualTo(testBook.getTotalCopies());
+            assertThat(actual.getAvailableCopies()).isEqualTo(testBook.getAvailableCopies());
+            assertThat(actual.getPublishedDate()).isEqualTo(testBook.getPublishedDate());
 
             Set<Long> expectedCatIds = testBook.getCategories().stream()
                     .map(Category::getId).collect(Collectors.toSet());
@@ -167,9 +167,9 @@ class BookRepositoryTest {
             assertThat(actual.getAuthor()).isNotNull();
             assertThat(actual.getAuthor().getId()).isEqualTo(testAuthor.getId());
 
-            assertThat(actual.getTotal_copies()).isEqualTo(testBook.getTotal_copies());
-            assertThat(actual.getAvailable_copies()).isEqualTo(testBook.getAvailable_copies());
-            assertThat(actual.getPublished_date()).isEqualTo(testBook.getPublished_date());
+            assertThat(actual.getTotalCopies()).isEqualTo(testBook.getTotalCopies());
+            assertThat(actual.getAvailableCopies()).isEqualTo(testBook.getAvailableCopies());
+            assertThat(actual.getPublishedDate()).isEqualTo(testBook.getPublishedDate());
 
             Set<Long> expectedCatIds = testBook.getCategories().stream()
                     .map(Category::getId).collect(Collectors.toSet());
@@ -195,9 +195,9 @@ class BookRepositoryTest {
             assertThat(actual.getAuthor()).isNotNull();
             assertThat(actual.getAuthor().getId()).isEqualTo(testAuthor.getId());
 
-            assertThat(actual.getTotal_copies()).isEqualTo(testBook.getTotal_copies());
-            assertThat(actual.getAvailable_copies()).isEqualTo(testBook.getAvailable_copies());
-            assertThat(actual.getPublished_date()).isEqualTo(testBook.getPublished_date());
+            assertThat(actual.getTotalCopies()).isEqualTo(testBook.getTotalCopies());
+            assertThat(actual.getAvailableCopies()).isEqualTo(testBook.getAvailableCopies());
+            assertThat(actual.getPublishedDate()).isEqualTo(testBook.getPublishedDate());
 
             Set<Long> expectedCatIds = testBook.getCategories().stream()
                     .map(Category::getId).collect(Collectors.toSet());
@@ -225,9 +225,9 @@ class BookRepositoryTest {
             assertThat(actual.getAuthor()).isNotNull();
             assertThat(actual.getAuthor().getId()).isEqualTo(testAuthor.getId());
 
-            assertThat(actual.getTotal_copies()).isEqualTo(testBook.getTotal_copies());
-            assertThat(actual.getAvailable_copies()).isEqualTo(testBook.getAvailable_copies());
-            assertThat(actual.getPublished_date()).isEqualTo(testBook.getPublished_date());
+            assertThat(actual.getTotalCopies()).isEqualTo(testBook.getTotalCopies());
+            assertThat(actual.getAvailableCopies()).isEqualTo(testBook.getAvailableCopies());
+            assertThat(actual.getPublishedDate()).isEqualTo(testBook.getPublishedDate());
 
             Set<Long> expectedCatIds = testBook.getCategories().stream()
                     .map(Category::getId).collect(Collectors.toSet());

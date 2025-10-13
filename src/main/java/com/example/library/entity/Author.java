@@ -37,19 +37,19 @@ public class Author extends Auditable {
      * The first name of the author.
      */
     @Column(nullable = false, length = 255)
-    private String first_name;
+    private String firstName;
 
     /**
      * The last name of the author.
      */
     @Column(nullable = false, length = 255)
-    private String last_name;
+    private String lastName;
 
     /**
      * The birth date of the author.
      */
     @Column(nullable = false)
-    private LocalDate birth_date;
+    private LocalDate birthDate;
     /**
      * The books written by the author.
      */

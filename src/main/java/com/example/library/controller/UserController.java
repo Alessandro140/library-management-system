@@ -84,7 +84,7 @@ public class UserController {
     })
     public ResponseEntity<Page<UserDTO>> getAllUser(
             @Parameter(description = "Pageable information for pagination") @ParameterObject
-            @PageableDefault(size = 20, sort = "loan_", direction = Sort.Direction.ASC) @NotNull
+            @PageableDefault(size = 20, sort = "email", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable) {
 
         return ResponseEntity.ok(this.userService.getUsers(null, pageable));

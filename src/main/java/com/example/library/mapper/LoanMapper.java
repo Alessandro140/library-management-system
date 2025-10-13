@@ -14,7 +14,7 @@ public interface LoanMapper {
     @Mapping(target = "user", ignore = true)
     Loan toEntity(LoanDTO dto);
 
-    @Mapping(target = "user_id", source = "user.id")
+    @Mapping(target = "userId", source = "user.id")
     LoanDTO toDto(Loan entity);
 
     @Mapping(target = "id", ignore = true)

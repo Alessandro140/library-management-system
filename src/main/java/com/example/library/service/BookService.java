@@ -7,9 +7,8 @@ import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.BookMapper;
 import com.example.library.repository.AuthorRepository;
 import com.example.library.repository.BookRepository;
+import com.example.library.specification.SpecsNotDeleted;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -63,16 +62,10 @@ public class BookService {
 
     public Page<BookDTO> getBooks(@Nullable Specification<Book> bookSpecification, @NonNull Pageable pageable){
 
-        Specification<Book> notDeletedSpec = (root, query, criteriaBuilder) ->
-            criteriaBuilder.isFalse(root.get("deleted"));
+        Specification<Book> specBook = SpecsNotDeleted.ensureNotDeleted(bookSpecification);
 
-        if (bookSpecification != null) {
-            bookSpecification = bookSpecification.and(notDeletedSpec);
-        } else {
-            bookSpecification = notDeletedSpec;
-        }
 
-        return this.bookRepository.findAll(bookSpecification, pageable).map(this.bookMapper::toDto);
+        return this.bookRepository.findAll(specBook, pageable).map(this.bookMapper::toDto);
     }
 
 
@@ -91,8 +84,8 @@ public class BookService {
 
         bookDTO.setId(null);
         Book book = this.bookMapper.toEntity(bookDTO);
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthor_id())
-                .orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthor_id()));
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId())
+                .orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
         book.setAuthor(author);
         Book savedBook = this.bookRepository.save(book);
 
@@ -119,8 +112,8 @@ public class BookService {
             throw new BookAlreadyExistsException(bookDTO.getIsbn());
         }
 
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthor_id()).
-                orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthor_id()));
+        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId()).
+                orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
 
         this.bookMapper.updateBook(bookDTO, book);
         book.setAuthor(author);
@@ -171,13 +164,13 @@ public class BookService {
         Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
 
-        Integer availableCopies = bookToUpdate.getAvailable_copies();
+        Integer availableCopies = bookToUpdate.getAvailableCopies();
         if(availableCopies + quantities < 0){
             throw new BookHasNotEnoughCopiesException(id);
-        } else if(availableCopies + quantities > bookToUpdate.getTotal_copies()){
+        } else if(availableCopies + quantities > bookToUpdate.getTotalCopies()){
             throw new BookHasTooManyCopiesException(id);
         } else{
-            bookToUpdate.setAvailable_copies(availableCopies + quantities);
+            bookToUpdate.setAvailableCopies(availableCopies + quantities);
         }
         return this.bookMapper.toDto(bookToUpdate);
     }
@@ -196,13 +189,13 @@ public class BookService {
     public BookDTO updateTotalCopies(@NonNull Long id, Integer quantities)throws BookNotFoundException, BookHasNotEnoughCopiesException{
         Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
-        Integer totalCopies = bookToUpdate.getTotal_copies();
+        Integer totalCopies = bookToUpdate.getTotalCopies();
 
         if(totalCopies + quantities < 0){
             throw new BookHasNotEnoughCopiesException(id);
         }
 
-        bookToUpdate.setTotal_copies(totalCopies + quantities);
+        bookToUpdate.setTotalCopies(totalCopies + quantities);
 
         return this.bookMapper.toDto(bookToUpdate);
     }

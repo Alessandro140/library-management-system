@@ -5,10 +5,9 @@ import com.example.library.entity.User;
 import com.example.library.utils.RepositoryException;
 import com.example.library.mapper.UserMapper;
 import com.example.library.repository.UserRepository;
+import com.example.library.specification.SpecsNotDeleted;
 
 import jakarta.validation.constraints.NotNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -53,16 +52,9 @@ public class UserService {
      */
     public @NonNull Page<UserDTO> getUsers(Specification<User> userSpecification, @NonNull Pageable pageable){
 
-        Specification<User> notDeletedSpec = (root, query, criteriaBuilder) ->
-            criteriaBuilder.isFalse(root.get("deleted"));
+        Specification<User> specUser = SpecsNotDeleted.ensureNotDeleted(userSpecification);
 
-        if (userSpecification != null) {
-            userSpecification = userSpecification.and(notDeletedSpec);
-        } else {
-            userSpecification = notDeletedSpec;
-        }
-
-        return userRepository.findAll(userSpecification, pageable).map(this.userMapper::toDto);
+        return userRepository.findAll(specUser, pageable).map(this.userMapper::toDto);
     }
 
     /**

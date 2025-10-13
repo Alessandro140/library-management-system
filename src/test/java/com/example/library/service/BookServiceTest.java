@@ -14,8 +14,6 @@ import com.example.library.service.BookService.BookHasTooManyCopiesException;
 import com.example.library.service.BookService.BookNotFoundException;
 import com.example.library.service.BookService.AuthorNotFoundException;
 
-import jakarta.persistence.NamedStoredProcedureQueries;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -71,14 +69,14 @@ public class BookServiceTest {
         testAuthor2 = new Author();
 
         testAuthor.setId(1L);
-        testAuthor.setFirst_name("J.R.R.");
-        testAuthor.setLast_name("Tolkien");
-        testAuthor.setBirth_date(LocalDate.of(1892, 1, 3));
+        testAuthor.setFirstName("J.R.R.");
+        testAuthor.setLastName("Tolkien");
+        testAuthor.setBirthDate(LocalDate.of(1892, 1, 3));
 
         testAuthor2.setId(2L);
-        testAuthor2.setFirst_name("J.K.");
-        testAuthor2.setLast_name("Rowling");
-        testAuthor2.setBirth_date(LocalDate.of(1965, 7, 31));
+        testAuthor2.setFirstName("J.K.");
+        testAuthor2.setLastName("Rowling");
+        testAuthor2.setBirthDate(LocalDate.of(1965, 7, 31));
 
         // Categories
         category1 = new Category();
@@ -89,7 +87,7 @@ public class BookServiceTest {
 
         // Loan
         loan1 = new Loan();
-        loan1.setLoan_date(LocalDate.now());
+        loan1.setLoanDate(LocalDate.now());
 
         // Book 1
         testBook = new Book();
@@ -98,9 +96,9 @@ public class BookServiceTest {
         testBook.setDescription("A book used for test");
         testBook.setIsbn("1234567890123");
         testBook.setAuthor(testAuthor);
-        testBook.setTotal_copies(10);
-        testBook.setAvailable_copies(5);
-        testBook.setPublished_date(LocalDate.of(2020, 1, 1));
+        testBook.setTotalCopies(10);
+        testBook.setAvailableCopies(5);
+        testBook.setPublishedDate(LocalDate.of(2020, 1, 1));
         testBook.getCategories().add(category1);
         testBook.getCategories().add(category2);
         testBook.getLoans().add(loan1);
@@ -112,9 +110,9 @@ public class BookServiceTest {
         testBook2.setDescription("A book used for test");
         testBook2.setIsbn("1234567890125");
         testBook2.setAuthor(testAuthor);
-        testBook2.setTotal_copies(8);
-        testBook2.setAvailable_copies(6);
-        testBook2.setPublished_date(LocalDate.of(2020, 1, 1));
+        testBook2.setTotalCopies(8);
+        testBook2.setAvailableCopies(6);
+        testBook2.setPublishedDate(LocalDate.of(2020, 1, 1));
         testBook2.getCategories().add(category1);
         testBook2.getCategories().add(category2);
         testBook2.getLoans().add(loan1);
@@ -122,14 +120,14 @@ public class BookServiceTest {
         // DTOs
         testBookDTO = new BookDTO(
             testBook.getId(), testBook.getTitle(), testBook.getDescription(),
-            testBook.getAvailable_copies(), testBook.getTotal_copies(),
-            testBook.getIsbn(), testBook.getAuthor().getId(), testBook.getPublished_date()
+            testBook.getAvailableCopies(), testBook.getTotalCopies(),
+            testBook.getIsbn(), testBook.getAuthor().getId(), testBook.getPublishedDate()
         );
 
         testBookDTO2 = new BookDTO(
             testBook2.getId(), testBook2.getTitle(), testBook2.getDescription(),
-            testBook2.getAvailable_copies(), testBook2.getTotal_copies(),
-            testBook2.getIsbn(), testBook2.getAuthor().getId(), testBook2.getPublished_date()
+            testBook2.getAvailableCopies(), testBook2.getTotalCopies(),
+            testBook2.getIsbn(), testBook2.getAuthor().getId(), testBook2.getPublishedDate()
         );
     }
 
@@ -208,7 +206,7 @@ public class BookServiceTest {
         void shouldCreateBookSuccessfully() throws BookAlreadyExistsException, AuthorNotFoundException{
         	when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
             when(bookRepository.save(any(Book.class))).thenReturn(testBook2);
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthor_id())).thenReturn(Optional.of(testAuthor));
+            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.of(testAuthor));
             BookDTO result = bookService.createBook(testBookDTO2);
 
             testBookDTO2.setId(2L);
@@ -216,7 +214,7 @@ public class BookServiceTest {
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO2);
 			verify(bookRepository).save(any(Book.class));
 			verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
-			verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthor_id());
+			verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
 
             verifyNoMoreInteractions(bookRepository);
             verifyNoMoreInteractions(authorRepository);
@@ -239,14 +237,14 @@ public class BookServiceTest {
         @DisplayName("should not create book successfully, author not found")
         void shouldNotCreateBookSuccessfullyNoAuthor() throws BookAlreadyExistsException, AuthorNotFoundException{
             when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthor_id())).thenReturn(Optional.empty());
+            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.empty());
             assertThatThrownBy(() -> bookService.createBook(testBookDTO2))
                 .isInstanceOf(AuthorNotFoundException.class)
-                .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthor_id());
+                .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthorId());
 
             verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
-            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthor_id());
+            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
             verifyNoMoreInteractions(authorRepository);
         }
 
@@ -260,7 +258,7 @@ public class BookServiceTest {
         @DisplayName("should update a book")
         void shouldUpdateBookSuccessfully() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
             when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthor_id())).thenReturn(Optional.of(testAuthor));
+            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.of(testAuthor));
             when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
 
             BookDTO result = bookService.updateBook(testBook.getId(), testBookDTO2);
@@ -273,7 +271,7 @@ public class BookServiceTest {
             verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
             verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
-            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthor_id());
+            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
             verifyNoMoreInteractions(authorRepository);
         }
 
@@ -292,18 +290,18 @@ public class BookServiceTest {
         @DisplayName("should not update a book")
         void shouldNotUpdateBookSuccessfullyAuthorNotFound() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
             when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn((Optional.of(testBook)));
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthor_id())).thenReturn(Optional.empty());
+            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.empty());
             when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
 
             testBookDTO2.setId(testBook.getId());
             assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
                 .isInstanceOf(BookService.AuthorNotFoundException.class)
-                .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthor_id());
+                .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthorId());
 
             verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
             verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
-            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthor_id());
+            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
             verifyNoMoreInteractions(authorRepository);
         }
     }
@@ -383,7 +381,7 @@ public class BookServiceTest {
 
             BookDTO result = bookService.updateAvailableCopies(testBook.getId(), 1);
 
-            testBookDTO.setAvailable_copies(testBookDTO.getAvailable_copies() + 1);
+            testBookDTO.setAvailableCopies(testBookDTO.getAvailableCopies() + 1);
 
             assertThat(result).isNotNull();
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
@@ -446,7 +444,7 @@ public class BookServiceTest {
 
             BookDTO result = bookService.updateTotalCopies(testBook.getId(), 11);
 
-            testBookDTO.setTotal_copies(testBookDTO.getTotal_copies()+11);
+            testBookDTO.setTotalCopies(testBookDTO.getTotalCopies()+11);
 
             assertThat(result).isNotNull();
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);

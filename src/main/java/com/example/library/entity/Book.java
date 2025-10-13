@@ -66,19 +66,19 @@ public class Book extends Auditable{
      * The total number of copies of the book in the library.
      */
     @Column(nullable = false)
-    private Integer total_copies;
+    private Integer totalCopies;
 
     /**
      * The number of available copies of the book in the library.
      */
     @Column(nullable = false)
-    private Integer available_copies;
+    private Integer availableCopies;
 
     /**
      * The publication date of the book.
      */
     @Column(nullable = false)
-    private LocalDate published_date;
+    private LocalDate publishedDate;
 
     /**
      * The categories that the book belongs to.

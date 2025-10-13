@@ -1,7 +1,11 @@
 package com.example.library.controller;
 
 import com.example.library.dto.BookDTO;
+import com.example.library.entity.Book;
 import com.example.library.service.BookService;
+import com.example.library.specification.BookSpecification;
+import com.example.library.utils.SpecificationComposer;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,9 +19,11 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
+import org.springframework.lang.Nullable;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
@@ -85,12 +91,15 @@ public class BookController {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<Page<BookDTO>> getAllBooks(
+            @Parameter(description = "Filter books by title (case-insensitive, partial match)")
+            @RequestParam(required = false) @Nullable
+            String title,
             @Parameter(description = "Pageable information for pagination") @ParameterObject
             @PageableDefault(size = 20, sort = "title", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable
     ) {
-
-        return ResponseEntity.ok(this.bookService.getBooks(null, pageable));
+        Specification<Book> bookSpecification = BookSpecification.titleLike(title);
+        return ResponseEntity.ok(this.bookService.getBooks(bookSpecification, pageable));
     }
 
     /**

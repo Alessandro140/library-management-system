@@ -2,8 +2,6 @@ package com.example.library.controller;
 
 import com.example.library.dto.LoanDTO;
 import com.example.library.service.LoanService;
-import com.example.library.service.LoanService;
-import com.example.library.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -22,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
-import java.util.Optional;
 
 
 @RestController
@@ -34,16 +31,14 @@ public class LoanController {
      * The LoanService instance.
      */
     private final LoanService loanService;
-    private final BookService bookService;
     /**
      * Create a new LoanController.
      *
      * @param loanService the LoanService instance
      * @param bookService the BookService instance
      */
-    public LoanController(LoanService loanService, BookService bookService) {
+    public LoanController(LoanService loanService) {
         this.loanService = loanService;
-        this.bookService = bookService;
     }
 
     /**

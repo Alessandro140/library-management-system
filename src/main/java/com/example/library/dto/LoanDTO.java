@@ -31,20 +31,20 @@ public class LoanDTO {
      * The user who made the loan.
      */
     @NotNull
-    public Long user_id;
+    public Long userId;
 
     /**
      * The date when the loan was made.
      */
     @NotNull
     @PastOrPresent(message = "Loan date must be in the past or present")
-    public LocalDate loan_date;
+    public LocalDate loanDate;
 
     /**
      * The due date for returning the loaned books.
      */
     @NotNull
-    public LocalDate due_date;
+    public LocalDate dueDate;
 
     /**
      * The status of the loan.

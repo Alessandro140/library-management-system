@@ -19,7 +19,7 @@ public interface BookMapper {
     Book toEntity(BookDTO dto);
 
     // Map from Entity to DTO. Map nested author.id to authorId explicitly.
-    @Mapping(target = "author_id", source = "author.id")
+    @Mapping(target = "authorId", source = "author.id")
     BookDTO toDto(Book entity);
 
     // Update existing entity from DTO: ignore id and relations and audit fields.
