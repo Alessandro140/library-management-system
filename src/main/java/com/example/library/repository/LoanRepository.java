@@ -7,6 +7,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
 
 import com.example.library.entity.Loan;
+import java.util.List;
+import java.time.LocalDate;
+
 
 /*
  * Repository for the Loan entity.
@@ -31,4 +34,11 @@ public interface LoanRepository extends JpaRepository<Loan, Long>, JpaSpecificat
 	 */
 	Optional<Loan> findByIdAndDeletedTrue(Long id);
 
+	/**
+	 * Find all the loan with this dueDate.
+	 *
+	 * @param dueDate
+	 * @return
+	 */
+	List<Loan> findByDueDate(LocalDate dueDate);
 }

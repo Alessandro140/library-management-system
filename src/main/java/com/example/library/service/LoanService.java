@@ -3,6 +3,7 @@ package com.example.library.service;
 import com.example.library.dto.BookDTO;
 import com.example.library.dto.LoanDTO;
 import com.example.library.entity.Loan;
+import com.example.library.entity.LoanStatus;
 import com.example.library.entity.User;
 import com.example.library.entity.Book;
 import com.example.library.utils.RepositoryException;
@@ -22,6 +23,7 @@ import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -338,6 +340,22 @@ public class LoanService {
         loanToRestore.setDeleted(false);
 
         return this.loanMapper.toDto(loanToRestore);
+    }
+
+    @Transactional
+    public void updateLoanStatus(){
+
+        LocalDate today =  LocalDate.now();
+
+        List<Loan> loansToUpdate = this.loanRepository.findByDueDate(today);
+
+        if(loansToUpdate == null || loansToUpdate.size() == 0){
+            return;
+        }
+
+        for (Loan loan : loansToUpdate) {
+            loan.setStatus(LoanStatus.LATE);
+        }
     }
 
     /**

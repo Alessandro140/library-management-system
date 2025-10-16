@@ -697,4 +697,55 @@ public class BookServiceTest {
         }
     }
 
+
+    @Nested
+    @DisplayName("get books by author id")
+    class getBooksByAuthorId{
+
+        @Test
+        @DisplayName("Should find the books of an author")
+        void shouldGetTheBooksOfAnAuthorSucessfully() throws NullInputException{
+            Pageable pageable = PageRequest.of(0, 10);
+            Specification<Book> spec = Specification.where(null);
+            List<Book> books = Arrays.asList(testBook);
+            Page<Book> bookPage = new PageImpl<>(books, pageable, books.size());
+
+            when(bookRepository.findByAuthorId(1L, pageable)).thenReturn(bookPage);
+
+            Page<BookDTO> result = bookService.getBooksByAuthorId(1L, pageable);
+
+            assertThat(result).isNotNull();
+            assertThat(result.getContent()).hasSize(1);
+            assertThat(result.getContent().get(0)).usingRecursiveComparison().isEqualTo(testBookDTO);
+
+            verify(bookRepository).findByAuthorId(1L, pageable);
+            verifyNoMoreInteractions(bookRepository);;
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenPageIsNull() throws BookService.NullInputException {
+            assertThatThrownBy(() -> bookService.getBooksByAuthorId(1L, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: pageable");
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the id is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookService.NullInputException {
+            Pageable pageable = PageRequest.of(0, 10);
+            assertThatThrownBy(() -> bookService.getBooksByAuthorId(null, pageable))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+        @Test
+        @DisplayName("should throw an exception if id and pageable are null")
+        void shouldThrowNullPointerException_whenIdAndPageableAreNull() throws BookService.NullInputException {
+            assertThatThrownBy(() -> bookService.getBooksByAuthorId(null, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameters should be NonNull: id, pageable");
+        }
+
+    }
 }
