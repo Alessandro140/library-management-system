@@ -12,6 +12,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.Where;
+
 /**
  * Represents an author in the library system.
  * This entity is mapped to the 'authors' table in the database.
@@ -23,6 +25,7 @@ import java.util.Set;
 @ToString
 @EqualsAndHashCode(callSuper = true)
 @Entity
+@Where(clause = "deleted=false")
 @Table(name = "authors")
 public class Author extends Auditable {
 

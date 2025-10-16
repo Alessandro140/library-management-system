@@ -58,20 +58,27 @@ public class LoanController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the loan",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoanDTO.class))),
             @ApiResponse(responseCode = "404", description = "Loan not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<LoanDTO> getLoanById(
+	})
+    public ResponseEntity<?> getLoanById(
             @Parameter(description = "ID of the loan to retrieve", required = true) @NonNull
             @PathVariable
             Long id
     ) {
-        // Get the loan by its ID.
-        return this.loanService.getLoanById(id)
-                // Return the loan if found.
-                .map(ResponseEntity::ok)
-                // Return a 404 Not Found response if the loan is not found.
-                .orElse(ResponseEntity.notFound().build());
-    }
+		try{
+			// Get the loan by its ID.
+			return this.loanService.getLoanById(id)
+					// Return the loan if found.
+					.map(ResponseEntity::ok)
+					// Return a 404 Not Found response if the loan is not found.
+					.orElse(ResponseEntity.notFound().build());
+		} catch(LoanService.NullInputException e){
+			return e.toResponseEntity();
+		}
+
+	}
 
     /**
      * Get a paginated list of all loans in the library.
@@ -86,9 +93,11 @@ public class LoanController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of loans",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<Page<LoanDTO>> getAllLoan(
+	})
+    public ResponseEntity<?> getAllLoan(
             @Parameter(description = "Filter Loans by status (case-insensitive, partial match)")
             @RequestParam(required = false) @Nullable
             String status,
@@ -96,9 +105,13 @@ public class LoanController {
             @PageableDefault(size = 20, sort = "status", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable) {
 
-        Specification<Loan> loanSpecification = LoanSpecification.statusLike(status);
-        return ResponseEntity.ok(this.loanService.getLoans(loanSpecification, pageable));
-    }
+		try{
+        	Specification<Loan> loanSpecification = LoanSpecification.statusLike(status);
+        	return ResponseEntity.ok(this.loanService.getLoans(loanSpecification, pageable));
+		} catch (LoanService.NullInputException e){
+			return e.toResponseEntity();
+		}
+	}
 
     /**
      * Create a new loan in the library.
@@ -118,64 +131,63 @@ public class LoanController {
             @ApiResponse(responseCode = "404", description = "One of the book is not found",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "409", description = "One of the book has not enough copies",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-                })
+	})
     public ResponseEntity<?> createLoan(
             @Parameter(description = "Loan to add to the library", required = true) @NonNull
             @Valid @RequestBody LoanDTO loanDTO) {
 
-    try {
-        // validazione base
-        if (loanDTO.getBooks() == null || loanDTO.getBooks().isEmpty()) {
-            return ResponseEntity.badRequest().body("Invalid input");
-        }
-
+	    try {
             return ResponseEntity.ok(this.loanService.createLoan(loanDTO));
-
         } catch (LoanService.BookNotFoundException |LoanService.BookHasNotEnoughCopiesException
-                        | LoanService.UserNotFoundException e) {
+                        | LoanService.UserNotFoundException | LoanService.NullInputException e) {
             return e.toResponseEntity();
         }
     }
 
-        /**
-         * Update an existing loan in the library.
-         *
-         * @param id      the id of the loan to update
-         * @param loanDTO the loan data to update
-         * @return the updated loan
-         */
-        @PutMapping("/{id}")
-        @Operation(summary = "Update a loan", description = "Update an existing loan in the library")
-        @ApiResponses({
-                @ApiResponse(responseCode = "200", description = "Successfully updated the loan",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoanDTO.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid input",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Loan not found",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Book not found",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "User not found",
-                content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "409", description = "Book has not enough copies",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-        })
-        public ResponseEntity<?> updateLoan(
-                @Parameter(description = "ID of the loan to update", required = true) @NonNull
-                @PathVariable
-                Long id,
-                @Parameter(description = "Updated loan information", required = true) @NonNull
-                @Valid @RequestBody
-                LoanDTO loanDTO
-        ) {
-            try {
-                return ResponseEntity.ok(this.loanService.updateLoan(id, loanDTO));
-            } catch (LoanService.LoanNotFoundException | LoanService.UserNotFoundException |
-                LoanService.BookHasNotEnoughCopiesException | LoanService.BookNotFoundException e) {
-                return e.toResponseEntity();
-            }
-        }
+	/**
+	 * Update an existing loan in the library.
+	 *
+	 * @param id      the id of the loan to update
+	 * @param loanDTO the loan data to update
+	 * @return the updated loan
+	 */
+	@PutMapping("/{id}")
+	@Operation(summary = "Update a loan", description = "Update an existing loan in the library")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Successfully updated the loan",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = LoanDTO.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid input",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "Loan not found",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "Book not found",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "User not found",
+			content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "409", description = "Book has not enough copies",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "409", description = "Inputs are null",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+	})
+	public ResponseEntity<?> updateLoan(
+			@Parameter(description = "ID of the loan to update", required = true) @NonNull
+			@PathVariable
+			Long id,
+			@Parameter(description = "Updated loan information", required = true) @NonNull
+			@Valid @RequestBody
+			LoanDTO loanDTO
+	) {
+		try {
+			return ResponseEntity.ok(this.loanService.updateLoan(id, loanDTO));
+		} catch (LoanService.LoanNotFoundException | LoanService.UserNotFoundException |
+			LoanService.BookHasNotEnoughCopiesException | LoanService.BookNotFoundException
+			| LoanService.NullInputException | LoanService.BookHasTooManyCopiesException e) {
+			return e.toResponseEntity();
+		}
+	}
 
 
     /**
@@ -188,6 +200,8 @@ public class LoanController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Successfully deleted the loan"),
             @ApiResponse(responseCode = "404", description = "Loan not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<?> deleteLoan(
@@ -197,7 +211,8 @@ public class LoanController {
         try {
             this.loanService.softDeleteLoan(id);
             return ResponseEntity.noContent().build();
-        } catch (LoanService.LoanNotFoundException e) {
+        } catch (LoanService.LoanNotFoundException | LoanService.NullInputException |
+				LoanService.BookHasTooManyCopiesException | LoanService.BookHasNotEnoughCopiesException e) {
             return e.toResponseEntity();
         }
     }

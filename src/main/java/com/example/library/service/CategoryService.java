@@ -35,8 +35,11 @@ public class CategoryService {
      * @param id
      * @return the optional of the category dto.
      */
-    public @NonNull Optional<CategoryDTO> getCategoryById(@NonNull Long id){
-        return this.categoryRepository.findByIdAndDeletedFalse(id).map(this.categoryMapper::toDto);
+    public @NonNull Optional<CategoryDTO> getCategoryById(@NonNull Long id) throws NullInputException{
+        if (id == null){
+            throw new NullInputException("id");
+        }
+        return this.categoryRepository.findById(id).map(this.categoryMapper::toDto);
     }
 
     /**
@@ -46,8 +49,10 @@ public class CategoryService {
      * @param pageable
      * @return the pages of category dto.
      */
-    public @NonNull Page<CategoryDTO> getCategories(Specification<Category> categorySpecification, Pageable pageable){
-
+    public @NonNull Page<CategoryDTO> getCategories(Specification<Category> categorySpecification, @NonNull Pageable pageable) throws NullInputException{
+        if (pageable == null){
+            throw new NullInputException("pageable");
+        }
         Specification<Category> specCategory = SpecsNotDeleted.ensureNotDeleted(categorySpecification);
 
         return categoryRepository.findAll(specCategory, pageable).map(this.categoryMapper::toDto);
@@ -60,8 +65,10 @@ public class CategoryService {
      * @return the created category.
      */
     @Transactional
-    public @NonNull CategoryDTO createCategory(@NonNull CategoryDTO categoryDTO){
-
+    public @NonNull CategoryDTO createCategory(@NonNull CategoryDTO categoryDTO) throws NullInputException{
+        if (categoryDTO == null){
+            throw new NullInputException("categoryDTO");
+        }
         categoryDTO.setId(null);
 
         Category categoryToSave = this.categoryMapper.toEntity(categoryDTO);
@@ -79,9 +86,17 @@ public class CategoryService {
      * @throws CategoryNotFoundException
      */
     @Transactional
-    public @NotNull CategoryDTO updateCategory(@NonNull Long id, @NonNull CategoryDTO categoryDTO) throws CategoryNotFoundException{
+    public @NotNull CategoryDTO updateCategory(@NonNull Long id, @NonNull CategoryDTO categoryDTO) throws CategoryNotFoundException, NullInputException{
 
-        Category categoryToUpdate = this.categoryRepository.findByIdAndDeletedFalse(id)
+        if(id == null && categoryDTO == null){
+            throw new NullInputException("id", "categoryDTO");
+        } else if (id == null){
+            throw new NullInputException("id");
+        } else if (categoryDTO == null){
+            throw new NullInputException("categoryDTO");
+        }
+
+        Category categoryToUpdate = this.categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
 
         this.categoryMapper.updateCategory(categoryDTO, categoryToUpdate);
@@ -96,9 +111,12 @@ public class CategoryService {
      * @throws CategoryNotFoundException
      */
     @Transactional
-    public void softDeleteCategory(@NonNull Long id) throws CategoryNotFoundException{
+    public void softDeleteCategory(@NonNull Long id) throws CategoryNotFoundException, NullInputException{
 
-        Category category = this.categoryRepository.findByIdAndDeletedFalse(id)
+        if(id == null){
+            throw new NullInputException("id");
+        }
+        Category category = this.categoryRepository.findById(id)
                 .orElseThrow(() ->new CategoryNotFoundException(id));
 
         category.setDeleted(true);
@@ -111,8 +129,10 @@ public class CategoryService {
      * @throws CategoryNotFoundException
      */
     @Transactional
-    public void deleteCategory(@NonNull Long id) throws CategoryNotFoundException{
-
+    public void deleteCategory(@NonNull Long id) throws CategoryNotFoundException, NullInputException{
+        if(id == null){
+            throw new NullInputException("id");
+        }
         if (!this.categoryRepository.existsById(id)) {
             throw new CategoryNotFoundException(id);
         }
@@ -127,7 +147,11 @@ public class CategoryService {
      * @throws CategoryNotFoundException
      */
     @Transactional
-    public CategoryDTO restoreCategoryById(@NonNull Long id) throws CategoryNotFoundException{
+    public CategoryDTO restoreCategoryById(@NonNull Long id) throws CategoryNotFoundException, NullInputException{
+        if(id == null){
+            throw new NullInputException("id");
+        }
+
         Category categoryToRestore = this.categoryRepository.findByIdAndDeletedTrue(id).orElseThrow(() -> new CategoryNotFoundException(id));
 
         categoryToRestore.setDeleted(false);
@@ -146,6 +170,17 @@ public class CategoryService {
          */
         public CategoryNotFoundException(@NotNull Long id) {
             super("Category doesn't exist with id: " + id);
+        }
+    }
+
+    public static class NullInputException extends RepositoryException.BadRequest{
+
+        public NullInputException(@NotNull String parameterName){
+            super("This parameter should be NonNull: " + parameterName);
+        }
+
+        public NullInputException(@NotNull String parameterName1, @NotNull String parameterName2){
+            super("This parameters should be NonNull: " + parameterName1 + ", " + parameterName2);
         }
     }
 }

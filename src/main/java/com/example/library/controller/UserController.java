@@ -2,6 +2,7 @@ package com.example.library.controller;
 
 import com.example.library.dto.UserDTO;
 import com.example.library.service.UserService;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -52,19 +53,25 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<UserDTO> getUserById(
+    public ResponseEntity<?> getUserById(
             @Parameter(description = "ID of the user to retrieve", required = true) @NonNull
             @PathVariable
             Long id
     ) {
-        // Get the user by its ID.
-        return this.userService.getUserById(id)
-                // Return the user if found.
-                .map(ResponseEntity::ok)
-                // Return a 404 Not Found response if the user is not found.
-                .orElse(ResponseEntity.notFound().build());
+        try{
+            // Get the user by its ID.
+            return this.userService.getUserById(id)
+                    // Return the user if found.
+                    .map(ResponseEntity::ok)
+                    // Return a 404 Not Found response if the user is not found.
+                    .orElse(ResponseEntity.notFound().build());
+        } catch (UserService.NullInputException e){
+            return e.toResponseEntity();
+        }
     }
 
     /**
@@ -80,14 +87,20 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of users",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public ResponseEntity<Page<UserDTO>> getAllUser(
+    public ResponseEntity<?> getAllUser(
             @Parameter(description = "Pageable information for pagination") @ParameterObject
             @PageableDefault(size = 20, sort = "email", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable) {
 
-        return ResponseEntity.ok(this.userService.getUsers(null, pageable));
+        try{
+            return ResponseEntity.ok(this.userService.getUsers(null, pageable));
+        } catch(UserService.NullInputException e){
+            return e.toResponseEntity();
+        }
     }
 
 
@@ -104,52 +117,57 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "Successfully created the user",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-                })
+
+    })
     public ResponseEntity<?> createUser(
             @Parameter(description = "User to add to the library", required = true) @NonNull
             @Valid @RequestBody UserDTO userDTO) {
 
         try {
             return ResponseEntity.ok(this.userService.createUser(userDTO));
-        } catch (UserService.UserAlreadyExistsException e) {
+        } catch (UserService.UserAlreadyExistsException | UserService.NullInputException e) {
             return e.toResponseEntity();
         }
     }
 
-        /**
-         * Update an existing user in the library.
-         *
-         * @param id      the id of the user to update
-         * @param userDTO the user data to update
-         * @return the updated user
-         */
-        @PutMapping("/{id}")
-        @Operation(summary = "Update a user", description = "Update an existing user in the library")
-        @ApiResponses({
-                @ApiResponse(responseCode = "200", description = "Successfully updated the user",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid input",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "User not found",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "409", description = "User with this mail already exist",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-        })
-        public ResponseEntity<?> updateUser(
-                @Parameter(description = "ID of the user to update", required = true) @NonNull
-                @PathVariable
-                Long id,
-                @Parameter(description = "Updated user information", required = true) @NonNull
-                @Valid @RequestBody
-                UserDTO userDTO
-        ) {
-            try {
+    /**
+     * Update an existing user in the library.
+     *
+     * @param id      the id of the user to update
+     * @param userDTO the user data to update
+     * @return the updated user
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a user", description = "Update an existing user in the library")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Successfully updated the user",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserDTO.class))),
+            @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "User with this mail already exist",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public ResponseEntity<?> updateUser(
+            @Parameter(description = "ID of the user to update", required = true) @NonNull
+            @PathVariable
+            Long id,
+            @Parameter(description = "Updated user information", required = true) @NonNull
+            @Valid @RequestBody
+            UserDTO userDTO){
+        try {
                 return ResponseEntity.ok(this.userService.updateUser(id, userDTO));
-            } catch (UserService.UserNotFoundException | UserService.UserAlreadyExistsException e) {
+        } catch (UserService.UserNotFoundException | UserService.UserAlreadyExistsException
+                    | UserService.NullInputException e) {
                 return e.toResponseEntity();
-            }
         }
+    }
 
     /**
      * Delete a user from the library.
@@ -161,6 +179,8 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Successfully deleted the user"),
             @ApiResponse(responseCode = "404", description = "User not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
     })
     public ResponseEntity<?> deleteUser(
@@ -170,7 +190,7 @@ public class UserController {
         try {
             this.userService.softDeleteUser(id);
             return ResponseEntity.noContent().build();
-        } catch (UserService.UserNotFoundException e) {
+        } catch (UserService.UserNotFoundException | UserService.NullInputException e) {
             return e.toResponseEntity();
         }
     }

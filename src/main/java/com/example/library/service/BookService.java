@@ -8,7 +8,6 @@ import com.example.library.mapper.BookMapper;
 import com.example.library.repository.AuthorRepository;
 import com.example.library.repository.BookRepository;
 import com.example.library.specification.SpecsNotDeleted;
-
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,9 +43,11 @@ public class BookService {
      * @return an optional with the book if found, empty otherwise
      */
     @Transactional
-    public @NonNull Optional<BookDTO> getBookById(@NonNull Long id){
-
-        return this.bookRepository.findByIdAndDeletedFalse(id).map(this.bookMapper::toDto);
+    public @NonNull Optional<BookDTO> getBookById(@NonNull Long id) throws NullInputException{
+        if (id == null){
+            throw new NullInputException("id");
+        }
+        return this.bookRepository.findById(id).map(this.bookMapper::toDto);
     }
 
      /**
@@ -55,19 +56,35 @@ public class BookService {
      * @param Isbn the id of the book
      * @return an optional with the book if found, empty otherwise
      */
-    public @NonNull Optional<BookDTO> getBookByIsbn(@NonNull String Isbn){
-
-        return this.bookRepository.findByIsbnAndDeletedFalse(Isbn).map(this.bookMapper::toDto);
+    public @NonNull Optional<BookDTO> getBookByIsbn(@NonNull String Isbn) throws NullInputException{
+        if (Isbn == null){
+            throw new NullInputException("Isbn");
+        }
+        return this.bookRepository.findByIsbn(Isbn).map(this.bookMapper::toDto);
     }
 
-    public Page<BookDTO> getBooks(@Nullable Specification<Book> bookSpecification, @NonNull Pageable pageable){
+    public Page<BookDTO> getBooks(@Nullable Specification<Book> bookSpecification, @NonNull Pageable pageable) throws NullInputException{
+
+        if(pageable == null){
+            throw new NullInputException("pageable");
+        }
 
         Specification<Book> specBook = SpecsNotDeleted.ensureNotDeleted(bookSpecification);
-
 
         return this.bookRepository.findAll(specBook, pageable).map(this.bookMapper::toDto);
     }
 
+    public Page<BookDTO> getBooksByAuthorId(@NonNull Long id, @NonNull Pageable pageable) throws NullInputException{
+        if (id == null && pageable == null){
+            throw new NullInputException("id", "pageable");
+        } else if (id == null){
+            throw new NullInputException("id");
+        } else if( pageable == null){
+            throw new NullInputException("pageable");
+        }
+        return this.bookRepository.findByAuthorId(id, pageable).map(this.bookMapper::toDto);
+
+    }
 
     /**
      * Create a new book.
@@ -77,14 +94,19 @@ public class BookService {
      * @throws BookAlreadyExistsException if the book already exist
      */
     @Transactional
-    public @NonNull BookDTO createBook(@NonNull BookDTO bookDTO) throws BookAlreadyExistsException, AuthorNotFoundException{
-        if(this.bookRepository.findByIsbnAndDeletedFalse(bookDTO.getIsbn()).isPresent()){
+    public @NonNull BookDTO createBook(@NonNull BookDTO bookDTO) throws BookAlreadyExistsException, AuthorNotFoundException, NullInputException{
+
+        if(bookDTO == null){
+            throw new NullInputException("bookDTO");
+        }
+
+        if(this.bookRepository.findByIsbn(bookDTO.getIsbn()).isPresent()){
             throw new BookAlreadyExistsException(bookDTO.getIsbn());
         }
 
         bookDTO.setId(null);
         Book book = this.bookMapper.toEntity(bookDTO);
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId())
+        Author author = this.authorRepository.findById(bookDTO.getAuthorId())
                 .orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
         book.setAuthor(author);
         Book savedBook = this.bookRepository.save(book);
@@ -101,18 +123,27 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
+    public @NonNull BookDTO updateBook(@NonNull Long id, @NonNull BookDTO bookDTO) throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException, NullInputException {
 
-        Book book = this.bookRepository.findByIdAndDeletedFalse(id).
+        if(id == null && bookDTO == null){
+            throw new NullInputException("id", "bookDTO");
+
+        } else if(bookDTO == null){
+            throw new NullInputException("bookDTO");
+        } else if(id == null){
+            throw new NullInputException("id");
+        }
+
+        Book book = this.bookRepository.findById(id).
                 orElseThrow(() -> new BookNotFoundException(id));
 
-        Optional<Book> other = this.bookRepository.findByIsbnAndDeletedFalse(bookDTO.getIsbn());
+        Optional<Book> other = this.bookRepository.findByIsbn(bookDTO.getIsbn());
 
         if (other.isPresent() && !other.get().getId().equals(id)) {
             throw new BookAlreadyExistsException(bookDTO.getIsbn());
         }
 
-        Author author = this.authorRepository.findByIdAndDeletedFalse(bookDTO.getAuthorId()).
+        Author author = this.authorRepository.findById(bookDTO.getAuthorId()).
                 orElseThrow(() -> new AuthorNotFoundException(bookDTO.getAuthorId()));
 
         this.bookMapper.updateBook(bookDTO, book);
@@ -127,8 +158,13 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public void softDeleteBook(@NonNull Long id) throws BookNotFoundException{
-        Book book = this.bookRepository.findByIdAndDeletedFalse(id)
+    public void softDeleteBook(@NonNull Long id) throws BookNotFoundException, NullInputException{
+
+        if(id == null){
+            throw new NullInputException("id");
+        }
+
+        Book book = this.bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
         book.setDeleted(true);
     }
@@ -140,7 +176,12 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public void deleteBook(@NonNull Long id) throws BookNotFoundException {
+    public void deleteBook(@NonNull Long id) throws BookNotFoundException, NullInputException {
+
+        if(id == null){
+            throw new NullInputException("id");
+        }
+
         if (!this.bookRepository.existsById(id)) {
             throw new BookNotFoundException(id);
         }
@@ -159,9 +200,18 @@ public class BookService {
      * @throws BookHasTooManyCopiesException
      */
     @Transactional
-    public BookDTO updateAvailableCopies(@NonNull Long id, @NonNull Integer quantities) throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
+    public BookDTO updateAvailableCopies(@NonNull Long id, @NonNull Integer quantities) throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException, NullInputException {
 
-        Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id)
+
+        if(id == null && quantities == null){
+            throw new NullInputException("id", "quantities");
+        } else if (quantities == null){
+            throw new NullInputException("quantities");
+        } else if (id == null){
+            throw new NullInputException("id");
+        }
+
+        Book bookToUpdate = this.bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
 
         Integer availableCopies = bookToUpdate.getAvailableCopies();
@@ -186,8 +236,17 @@ public class BookService {
      * @throws BookHasNotEnoughCopiesException
      */
     @Transactional
-    public BookDTO updateTotalCopies(@NonNull Long id, Integer quantities)throws BookNotFoundException, BookHasNotEnoughCopiesException{
-        Book bookToUpdate = this.bookRepository.findByIdAndDeletedFalse(id)
+    public BookDTO updateTotalCopies(@NonNull Long id, Integer quantities)throws BookNotFoundException, BookHasNotEnoughCopiesException, NullInputException{
+
+        if(id == null && quantities == null){
+            throw new NullInputException("id", "quantities");
+        } else if (quantities == null){
+            throw new NullInputException("quantities");
+        } else if (id == null){
+            throw new NullInputException("id");
+        }
+
+        Book bookToUpdate = this.bookRepository.findById(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
         Integer totalCopies = bookToUpdate.getTotalCopies();
 
@@ -208,7 +267,11 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public BookDTO restoreBookById(@NonNull Long id) throws BookNotFoundException{
+    public BookDTO restoreBookById(@NonNull Long id) throws BookNotFoundException, NullInputException{
+
+        if(id == null){
+            throw new NullInputException("id");
+        }
         Book bookToRestore = this.bookRepository.findByIdAndDeletedTrue(id)
                 .orElseThrow(() -> new BookNotFoundException(id));
 
@@ -225,7 +288,12 @@ public class BookService {
      * @throws BookNotFoundException
      */
     @Transactional
-    public BookDTO restoreBookByIsbn(@NonNull String Isbn) throws BookNotFoundException{
+    public BookDTO restoreBookByIsbn(@NonNull String Isbn) throws BookNotFoundException, NullInputException{
+
+        if(Isbn == null){
+            throw new NullInputException("Isbn");
+        }
+
         Book bookToRestore = this.bookRepository.findByIsbnAndDeletedTrue(Isbn)
                 .orElseThrow(() -> new BookNotFoundException(Isbn));
 
@@ -313,4 +381,15 @@ public class BookService {
         }
     }
 
+
+    public static class NullInputException extends RepositoryException.BadRequest{
+
+        public NullInputException(@NotNull String parameterName){
+            super("This parameter should be NonNull: " + parameterName);
+        }
+
+        public NullInputException(@NotNull String parameterName1, @NotNull String parameterName2){
+            super("This parameters should be NonNull: " + parameterName1 + ", " + parameterName2);
+        }
+    }
 }

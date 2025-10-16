@@ -14,15 +14,6 @@ import com.example.library.entity.Author;
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Long>, JpaSpecificationExecutor<Author> {
 
-    /**
-     *
-	 * Find an author by its id.
-	 *
-	 * @param id the id of the author
-	 * @return an optional with the author if found, empty otherwise
-	 */
-	Optional<Author> findByIdAndDeletedFalse(Long id);
-
 	/**
 	 * Find a soft deleted author by its id.
 	 *

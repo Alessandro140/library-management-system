@@ -57,19 +57,26 @@ public class BookController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the book",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = BookDTO.class))),
             @ApiResponse(responseCode = "404", description = "Book not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<BookDTO> getBookById(
+
+	})
+    public ResponseEntity<?> getBookById(
             @Parameter(description = "ID of the book to retrieve", required = true) @NonNull
             @PathVariable
             Long id
     ) {
-        // Get the book by its ID.
-        return this.bookService.getBookById(id)
-                // Return the book if found.
-                .map(ResponseEntity::ok)
-                // Return a 404 Not Found response if the book is not found.
-                .orElse(ResponseEntity.notFound().build());
+        try{
+			// Get the book by its ID.
+			return this.bookService.getBookById(id)
+					// Return the book if found.
+					.map(ResponseEntity::ok)
+					// Return a 404 Not Found response if the book is not found.
+					.orElse(ResponseEntity.notFound().build());
+		} catch(BookService.NullInputException e){
+            return e.toResponseEntity();
+		}
     }
 
 
@@ -87,9 +94,11 @@ public class BookController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of books",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<Page<BookDTO>> getAllBooks(
+	})
+    public ResponseEntity<?> getAllBooks(
             @Parameter(description = "Filter books by title (case-insensitive, partial match)")
             @RequestParam(required = false) @Nullable
             String title,
@@ -98,7 +107,11 @@ public class BookController {
             Pageable pageable
     ) {
         Specification<Book> bookSpecification = BookSpecification.titleLike(title);
-        return ResponseEntity.ok(this.bookService.getBooks(bookSpecification, pageable));
+        try{
+			return ResponseEntity.ok(this.bookService.getBooks(bookSpecification, pageable));
+		} catch(BookService.NullInputException e){
+            return e.toResponseEntity();
+		}
     }
 
     /**
@@ -117,8 +130,11 @@ public class BookController {
             @ApiResponse(responseCode = "409", description = "Book already exists",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Author not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-                })
+
+				})
     public ResponseEntity<?> createBook(
             @Parameter(description = "Book to add to the library", required = true) @NonNull
             @Valid @RequestBody BookDTO bookDTO) {
@@ -126,7 +142,8 @@ public class BookController {
         try {
             // Create the book and return it.
             return ResponseEntity.ok(this.bookService.createBook(bookDTO));
-        } catch (BookService.BookAlreadyExistsException | BookService.AuthorNotFoundException e) {
+        } catch (BookService.BookAlreadyExistsException | BookService.AuthorNotFoundException
+				 | BookService.NullInputException e) {
             return e.toResponseEntity();
         }
     }
@@ -148,8 +165,11 @@ public class BookController {
                 @ApiResponse(responseCode = "404", description = "Book not found",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
                 @ApiResponse(responseCode = "404", description = "Author not found",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-        })
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+		})
         public ResponseEntity<?> updateBook(
                 @Parameter(description = "ID of the book to update", required = true) @NonNull
                 @PathVariable
@@ -162,7 +182,8 @@ public class BookController {
                 // Update the book by its ID and return it.
                 // Add a check that there are no book with the same ISBN
                 return ResponseEntity.ok(this.bookService.updateBook(id, bookDTO));
-            } catch (BookService.BookNotFoundException | BookService.AuthorNotFoundException | BookService.BookAlreadyExistsException e) {
+            } catch (BookService.BookNotFoundException | BookService.AuthorNotFoundException |
+					BookService.BookAlreadyExistsException | BookService.NullInputException e) {
                 // Return a 404 Not Found response if the book is not found.
                 return e.toResponseEntity();
             }
@@ -178,8 +199,11 @@ public class BookController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Successfully deleted the book"),
             @ApiResponse(responseCode = "404", description = "Book not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
+
+	})
     public ResponseEntity<?> deleteBook(
             @Parameter(description = "ID of the book to delete") @NonNull
             @PathVariable Long id
@@ -187,10 +211,8 @@ public class BookController {
         try {
             this.bookService.softDeleteBook(id);
             return ResponseEntity.noContent().build();
-        } catch (BookService.BookNotFoundException e) {
+        } catch (BookService.BookNotFoundException | BookService.NullInputException e) {
             return e.toResponseEntity();
         }
     }
-
-
 }

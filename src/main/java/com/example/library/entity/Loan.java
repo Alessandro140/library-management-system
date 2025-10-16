@@ -10,8 +10,10 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.hibernate.annotations.Where;
 
 /**
  * Represents a loan in the library system.
@@ -24,6 +26,7 @@ import java.util.List;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @Entity
+@Where(clause = "deleted=false")
 @Table(name = "loans")
 public class Loan extends Auditable {
 
@@ -37,8 +40,14 @@ public class Loan extends Auditable {
     /**
      * The books that are associated with this loan.
      */
-    @ManyToMany(fetch = FetchType.LAZY, mappedBy = "loans")
-    private List<Book> books = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "loans_book",
+        joinColumns = @JoinColumn(name = "loan"),
+        inverseJoinColumns = @JoinColumn(name = "book")
+    )
+    private Set<Book> books = new HashSet<>();
+
 
     /**
      * The user who made the loan.

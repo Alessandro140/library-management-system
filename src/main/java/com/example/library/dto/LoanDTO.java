@@ -56,6 +56,7 @@ public class LoanDTO {
     /**
      * The books associated with the loan
      */
+    @NotNull
     public List<BookDTO> books = new ArrayList<BookDTO>();
 
 }

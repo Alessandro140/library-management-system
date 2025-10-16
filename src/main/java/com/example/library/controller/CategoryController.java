@@ -52,20 +52,27 @@ public class CategoryController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the category",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "404", description = "Category not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<CategoryDTO> getCategoryById(
+	})
+    public ResponseEntity<?> getCategoryById(
             @Parameter(description = "ID of the category to retrieve", required = true) @NonNull
             @PathVariable
             Long id
     ) {
-        // Get the category by its ID.
-        return this.categoryService.getCategoryById(id)
-                // Return the category if found.
-                .map(ResponseEntity::ok)
-                // Return a 404 Not Found response if the category is not found.
-                .orElse(ResponseEntity.notFound().build());
-    }
+
+		try{
+			// Get the category by its ID.
+			return this.categoryService.getCategoryById(id)
+					// Return the category if found.
+					.map(ResponseEntity::ok)
+					// Return a 404 Not Found response if the category is not found.
+					.orElse(ResponseEntity.notFound().build());
+		} catch (CategoryService.NullInputException e) {
+			return e.toResponseEntity();
+		}
+	}
 
 
     /**
@@ -82,16 +89,21 @@ public class CategoryController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of categories",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<Page<CategoryDTO>> getAllCategory(
+	})
+    public ResponseEntity<?> getAllCategory(
             @Parameter(description = "Pageable information for pagination") @ParameterObject
             @PageableDefault(size = 20, sort = "name", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable
     ) {
-
-        return ResponseEntity.ok(this.categoryService.getCategories(null, pageable));
-    }
+		try{
+	        return ResponseEntity.ok(this.categoryService.getCategories(null, pageable));
+		} catch(CategoryService.NullInputException e){
+			return e.toResponseEntity();
+		}
+	}
 
     /**
      * Create a new category in the library.
@@ -105,48 +117,55 @@ public class CategoryController {
             @ApiResponse(responseCode = "200", description = "Successfully created the category",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-                })
+	})
     public ResponseEntity<?> createCategory(
             @Parameter(description = "Category to add to the library", required = true) @NonNull
             @Valid @RequestBody CategoryDTO categoryDTO) {
 
-
-         return ResponseEntity.ok(this.categoryService.createCategory(categoryDTO));
-
+		try{
+        	return ResponseEntity.ok(this.categoryService.createCategory(categoryDTO));
+		} catch (CategoryService.NullInputException e){
+			return e.toResponseEntity();
+		}
     }
 
-        /**
-         * Update an existing category in the library.
-         *
-         * @param id      the id of the category to update
-         * @param categoryDTO the category data to update
-         * @return the updated category
-         */
-        @PutMapping("/{id}")
-        @Operation(summary = "Update a category", description = "Update an existing category in the library")
-        @ApiResponses({
-                @ApiResponse(responseCode = "200", description = "Successfully updated the category",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))),
-                @ApiResponse(responseCode = "400", description = "Invalid input",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
-                @ApiResponse(responseCode = "404", description = "Category not found",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-        })
-        public ResponseEntity<?> updateCategory(
-                @Parameter(description = "ID of the category to update", required = true) @NonNull
-                @PathVariable
-                Long id,
-                @Parameter(description = "Updated category information", required = true) @NonNull
-                @Valid @RequestBody
-                CategoryDTO categoryDTO
-        ) {
-            try {
-                return ResponseEntity.ok(this.categoryService.updateCategory(id, categoryDTO));
-            } catch (CategoryService.CategoryNotFoundException e) {
-                return e.toResponseEntity();
-            }
-        }
+	/**
+	 * Update an existing category in the library.
+	 *
+	 * @param id      the id of the category to update
+	 * @param categoryDTO the category data to update
+	 * @return the updated category
+	 */
+	@PutMapping("/{id}")
+	@Operation(summary = "Update a category", description = "Update an existing category in the library")
+	@ApiResponses({
+			@ApiResponse(responseCode = "200", description = "Successfully updated the category",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = CategoryDTO.class))),
+			@ApiResponse(responseCode = "400", description = "Invalid input",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "404", description = "Category not found",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+	})
+	public ResponseEntity<?> updateCategory(
+			@Parameter(description = "ID of the category to update", required = true) @NonNull
+			@PathVariable
+			Long id,
+			@Parameter(description = "Updated category information", required = true) @NonNull
+			@Valid @RequestBody
+			CategoryDTO categoryDTO
+	) {
+		try {
+			return ResponseEntity.ok(this.categoryService.updateCategory(id, categoryDTO));
+		} catch (CategoryService.CategoryNotFoundException | CategoryService.NullInputException e) {
+			return e.toResponseEntity();
+		}
+	}
 
     /**
      * Delete a category from the library.
@@ -158,8 +177,11 @@ public class CategoryController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Successfully deleted the category"),
             @ApiResponse(responseCode = "404", description = "Category not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Inputs are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
+
+	})
     public ResponseEntity<?> deleteCategory(
             @Parameter(description = "ID of the category to delete") @NonNull
             @PathVariable Long id
@@ -167,7 +189,7 @@ public class CategoryController {
         try {
             this.categoryService.softDeleteCategory(id);
             return ResponseEntity.noContent().build();
-        } catch (CategoryService.CategoryNotFoundException e) {
+        } catch (CategoryService.CategoryNotFoundException | CategoryService.NullInputException e) {
             return e.toResponseEntity();
         }
     }

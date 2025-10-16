@@ -12,6 +12,8 @@ import lombok.ToString;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.Where;
+
 /**
  * Represents a user in the library system.
  * This entity is mapped to the 'users' table in the database.
@@ -23,6 +25,7 @@ import java.util.Set;
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @Entity
+@Where(clause = "deleted=false")
 @Table(name = "users")
 public class User extends Auditable {
 

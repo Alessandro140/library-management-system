@@ -6,19 +6,13 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
-
 
 /**
  * A DTO representing an author.
  */
-@Getter
-@Setter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
-@EqualsAndHashCode
 public class AuthorDTO{
 
     /**
@@ -46,9 +40,4 @@ public class AuthorDTO{
     @NotNull
     @Past(message = "Birth date must be in the past")
     public LocalDate birthDate;
-
-    /**
-     * The books written by the author.
-     */
-    public Set<BookDTO> books = new HashSet<>();
 }

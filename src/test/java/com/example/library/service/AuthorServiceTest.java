@@ -3,7 +3,9 @@ package com.example.library.service;
 import com.example.library.dto.AuthorDTO;
 import com.example.library.entity.Author;
 import com.example.library.mapper.AuthorMapper;
+import com.example.library.mapper.BookMapper;
 import com.example.library.repository.AuthorRepository;
+import com.example.library.repository.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -29,7 +31,6 @@ class AuthorServiceTest {
 
     private AuthorMapper authorMapper;
     private AuthorService authorService;
-
     private Author testAuthor;
     private AuthorDTO testAuthorDTO;
 
@@ -50,25 +51,25 @@ class AuthorServiceTest {
 
         @Test
         @DisplayName("should return author when found")
-        void shouldReturnAuthorWhenFound() {
-            when(authorRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testAuthor));
+        void shouldReturnAuthorWhenFound() throws AuthorService.NullInputException{
+            when(authorRepository.findById(1L)).thenReturn(Optional.of(testAuthor));
 
             Optional<AuthorDTO> result = authorService.getAuthorById(1L);
 
             assertThat(result).isPresent();
             assertThat(result.get()).usingRecursiveComparison().isEqualTo(testAuthorDTO);
-            verify(authorRepository).findByIdAndDeletedFalse(1L);
+            verify(authorRepository).findById(1L);
         }
 
         @Test
         @DisplayName("should return empty when author not found")
-        void shouldReturnEmptyWhenAuthorNotFound() {
-            when(authorRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.empty());
+        void shouldReturnEmptyWhenAuthorNotFound() throws AuthorService.NullInputException {
+            when(authorRepository.findById(1L)).thenReturn(Optional.empty());
 
             Optional<AuthorDTO> result = authorService.getAuthorById(1L);
 
             assertThat(result).isEmpty();
-            verify(authorRepository).findByIdAndDeletedFalse(1L);
+            verify(authorRepository).findById(1L);
         }
     }
 }

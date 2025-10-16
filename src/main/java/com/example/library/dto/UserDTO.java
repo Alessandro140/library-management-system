@@ -4,10 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
-import java.util.HashSet;
-import java.util.Set;
-
-
 /**
  * A DTO representing a user in the library system.
  */
@@ -41,6 +37,4 @@ public class UserDTO {
      */
     @NotNull(message = "User role cannot be null")
     public String role;
-
-    private final Set<LoanDTO> loans = new HashSet<>();
 }

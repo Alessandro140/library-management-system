@@ -3,6 +3,7 @@ package com.example.library.controller;
 import com.example.library.dto.AuthorDTO;
 import com.example.library.entity.Author;
 import com.example.library.service.AuthorService;
+import com.example.library.service.BookService;
 import com.example.library.service.AuthorService.BookNotFoundException;
 import com.example.library.specification.AuthorSpecification;
 
@@ -39,13 +40,16 @@ public class AuthorController {
      */
     private final AuthorService authorService;
 
+	private final BookService bookService;
+
     /**
      * Create a new AuthorController.
      *
      * @param authorService the AuthorService instance
      */
-    public AuthorController(AuthorService authorService) {
+    public AuthorController(AuthorService authorService, BookService bookService) {
         this.authorService = authorService;
+		this.bookService = bookService;
     }
 
     /**
@@ -60,17 +64,23 @@ public class AuthorController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved the author",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = AuthorDTO.class))),
             @ApiResponse(responseCode = "404", description = "Author not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<AuthorDTO> getAuthorById(
+
+	})
+    public ResponseEntity<?> getAuthorById(
             @Parameter(description = "ID of the author to retrieve", required = true) @NonNull
             @PathVariable
             Long id
     ) {
-        // Get the author by its ID.
-        return this.authorService.getAuthorById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+		try{
+			return this.authorService.getAuthorById(id)
+					.map(ResponseEntity::ok)
+					.orElse(ResponseEntity.notFound().build());
+		} catch (AuthorService.NullInputException e){
+			return e.toResponseEntity();
+		}
     }
 
     @GetMapping
@@ -79,9 +89,12 @@ public class AuthorController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved list of authors",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Page.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
-    public ResponseEntity<Page<AuthorDTO>> getAllAuthors(
+
+	})
+    public ResponseEntity<?> getAllAuthors(
             @Parameter(description = "Filter Authors by surname (case-insensitive, partial match)")
             @RequestParam(required = false) @Nullable
             String surname,
@@ -89,9 +102,12 @@ public class AuthorController {
             @PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) @NotNull
             Pageable pageable
     ) {
-
-        Specification<Author> authorSpecification = AuthorSpecification.surnameLike(surname);
-        return ResponseEntity.ok(this.authorService.getAuthors(authorSpecification, pageable));
+		try{
+        	Specification<Author> authorSpecification = AuthorSpecification.surnameLike(surname);
+        	return ResponseEntity.ok(this.authorService.getAuthors(authorSpecification, pageable));
+		} catch(AuthorService.NullInputException e){
+			return e.toResponseEntity();
+		}
     }
 
 
@@ -109,17 +125,19 @@ public class AuthorController {
             @ApiResponse(responseCode = "400", description = "Invalid input",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
             @ApiResponse(responseCode = "404", description = "Book not found",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Input are null",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-
-                })
+    })
     public ResponseEntity<?> createAuthor(
             @Parameter(description = "Author to add to the library", required = true) @NonNull
             @Valid @RequestBody AuthorDTO authorDTO) {
-            try{
-                return ResponseEntity.ok(this.authorService.createAuthor(authorDTO));
-            } catch(BookNotFoundException e) {
-                return e.toResponseEntity();
-            }
+
+		try{
+			return ResponseEntity.ok(this.authorService.createAuthor(authorDTO));
+		} catch(BookNotFoundException | AuthorService.NullInputException e) {
+			return e.toResponseEntity();
+		}
     }
 
         /**
@@ -139,8 +157,10 @@ public class AuthorController {
                 @ApiResponse(responseCode = "404", description = "Author not found",
                         content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
                 @ApiResponse(responseCode = "404", description = "Book not found",
-                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-        })
+                        content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+       		    @ApiResponse(responseCode = "409", description = "Input are null",
+                    	content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+		})
         public ResponseEntity<?> updateAuthor(
                 @Parameter(description = "ID of the author to update", required = true) @NonNull
                 @PathVariable
@@ -151,7 +171,7 @@ public class AuthorController {
         ) {
             try {
                 return ResponseEntity.ok(this.authorService.updateAuthor(id, authorDTO));
-            } catch (AuthorService.AuthorNotFoundException | BookNotFoundException e) {
+            } catch (AuthorService.AuthorNotFoundException | AuthorService.NullInputException | BookNotFoundException  e) {
                 return e.toResponseEntity();
             }
         }
@@ -166,8 +186,11 @@ public class AuthorController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Successfully deleted the author"),
             @ApiResponse(responseCode = "404", description = "Author not found",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
-    })
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class))),
+			@ApiResponse(responseCode = "409", description = "Input are null",
+					content = @Content(mediaType = "application/json", schema = @Schema(implementation = ErrorResponse.class)))
+
+	})
     public ResponseEntity<?> deleteAuthor(
             @Parameter(description = "ID of the author to delete") @NonNull
             @PathVariable Long id
@@ -175,9 +198,19 @@ public class AuthorController {
         try {
             this.authorService.softDeleteAuthor(id);
             return ResponseEntity.noContent().build();
-        } catch (AuthorService.AuthorNotFoundException e) {
+        } catch (AuthorService.AuthorNotFoundException | AuthorService.NullInputException e) {
             return e.toResponseEntity();
         }
     }
+
+    @GetMapping("/{id}/books")
+    public ResponseEntity<?> getAuthorBooksById(@NonNull @PathVariable Long id,
+	@PageableDefault(size = 20, sort = "id", direction = Sort.Direction.ASC) @NotNull Pageable pageable){
+        try{
+			return ResponseEntity.ok(this.bookService.getBooksByAuthorId(id, pageable));
+		} catch(BookService.NullInputException e){
+			return e.toResponseEntity();
+		}
+	}
 
 }

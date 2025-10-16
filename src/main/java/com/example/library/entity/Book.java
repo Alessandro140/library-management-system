@@ -15,6 +15,8 @@ import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.hibernate.annotations.Where;
+
 /*
  * Represents a book in the library system.
  * This entity is mapped to the 'books' table in the database.
@@ -26,6 +28,7 @@ import java.util.Set;
 @ToString(exclude = {"categories", "loans", "author"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = true)
 @Entity
+@Where(clause = "deleted=false")
 @Table(name = "books")
 public class Book extends Auditable{
 
@@ -94,12 +97,7 @@ public class Book extends Auditable{
     /**
      * The loans that the book is associated with.
      */
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "loans_book",
-            joinColumns = @JoinColumn(name = "book"),
-            inverseJoinColumns = @JoinColumn(name = "loan")
-    )
+	@ManyToMany(fetch = FetchType.LAZY, mappedBy = "books")
     private final Set<Loan> loans = new HashSet<>();
     /**
     * Indicates whether the book is deleted (soft delete).

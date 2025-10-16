@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Page;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,22 +22,16 @@ import java.util.Optional;
  */
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificationExecutor<Book> {
+
 	/**
 	 * Find a book by its ISBN.
 	 *
 	 * @param isbn the ISBN of the book
 	 * @return an optional with the book if found, empty otherwise
 	 */
-	Optional<Book> findByIsbnAndDeletedFalse(String isbn);
+	Optional<Book> findByIsbn(String isbn);
 
-
-	/**
-	 * Find a book by its id.
-	 *
-	 * @param id the id of the book
-	 * @return an optional with the book if found, empty otherwise
-	 */
-	Optional<Book> findByIdAndDeletedFalse(Long id);
+	Page<Book> findByAuthorId(Long id, Pageable pageable);
 
 	/**
 	 * Find a soft deleted book by its ISBN.

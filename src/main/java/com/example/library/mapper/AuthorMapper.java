@@ -12,12 +12,14 @@ public interface AuthorMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "books", ignore = true)
     @IgnoreAuditFields
     Author updateAuthor(AuthorDTO dto, @MappingTarget Author entity);
 
     AuthorDTO toDto(Author entity);
 
     @Mapping(target = "deleted", ignore = true)
+    @Mapping(target = "books", ignore = true)
     @IgnoreAuditFields
     Author toEntity(AuthorDTO dto);
 }

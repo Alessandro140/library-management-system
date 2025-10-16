@@ -12,6 +12,7 @@ import com.example.library.service.BookService.BookAlreadyExistsException;
 import com.example.library.service.BookService.BookHasNotEnoughCopiesException;
 import com.example.library.service.BookService.BookHasTooManyCopiesException;
 import com.example.library.service.BookService.BookNotFoundException;
+import com.example.library.service.BookService.NullInputException;
 import com.example.library.service.BookService.AuthorNotFoundException;
 
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +37,7 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -150,25 +152,33 @@ public class BookServiceTest {
 
         @Test
         @DisplayName("should return a book when found")
-        void shouldReturnBookWhenFound() {
-            when(bookRepository.findByIdAndDeletedFalse(1L)).thenReturn(Optional.of(testBook));
+        void shouldReturnBookWhenFound() throws BookService.NullInputException{
+            when(bookRepository.findById(1L)).thenReturn(Optional.of(testBook));
 
             Optional<BookDTO> result = bookService.getBookById(1L);
 
             assertThat(result).isPresent();
             assertThat(result.get()).usingRecursiveComparison().isEqualTo(testBookDTO);
-            verify(bookRepository).findByIdAndDeletedFalse(1L);
+            verify(bookRepository).findById(1L);
         }
 
         @Test
         @DisplayName("should return empty when book not found")
-        void shouldNotReturnBookWhenFound() {
-            when(bookRepository.findByIdAndDeletedFalse(2L)).thenReturn(Optional.empty());
+        void shouldNotReturnBookWhenFound() throws BookService.NullInputException {
+            when(bookRepository.findById(2L)).thenReturn(Optional.empty());
 
             Optional<BookDTO> result = bookService.getBookById(2L);
 
             assertThat(result).isEmpty();
-            verify(bookRepository).findByIdAndDeletedFalse(2L);
+            verify(bookRepository).findById(2L);
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the input is null")
+        void getBookById_shouldThrowNullPointerException_whenIdIsNull() throws BookService.NullInputException {
+            assertThatThrownBy(() -> bookService.getBookById(null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
         }
     }
 
@@ -177,8 +187,16 @@ public class BookServiceTest {
     class GetBooks {
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenPageIsNull() throws BookService.NullInputException {
+            assertThatThrownBy(() -> bookService.getBooks(null, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: pageable");
+        }
+
+        @Test
         @DisplayName("should return paged books")
-        void shouldReturnPagedBooks() {
+        void shouldReturnPagedBooks() throws NullInputException {
             Pageable pageable = PageRequest.of(0, 10);
             Specification<Book> spec = Specification.where(null);
             List<Book> books = Arrays.asList(testBook, testBook2);
@@ -202,19 +220,26 @@ public class BookServiceTest {
     class CreateBook{
 
         @Test
-        @DisplayName("should create book successfully")
-        void shouldCreateBookSuccessfully() throws BookAlreadyExistsException, AuthorNotFoundException{
-        	when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
-            when(bookRepository.save(any(Book.class))).thenReturn(testBook2);
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.of(testAuthor));
-            BookDTO result = bookService.createBook(testBookDTO2);
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenbookDTOIsNull() throws BookAlreadyExistsException, AuthorNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.createBook(null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: bookDTO");
+        }
 
+        @Test
+        @DisplayName("should create book successfully")
+        void shouldCreateBookSuccessfully() throws BookAlreadyExistsException, AuthorNotFoundException, NullInputException{
+        	when(bookRepository.findByIsbn(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
+            when(bookRepository.save(any(Book.class))).thenReturn(testBook2);
+            when(authorRepository.findById(testBookDTO2.getAuthorId())).thenReturn(Optional.of(testAuthor));
+            BookDTO result = bookService.createBook(testBookDTO2);
             testBookDTO2.setId(2L);
             assertThat(result).isNotNull();
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO2);
 			verify(bookRepository).save(any(Book.class));
-			verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
-			verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
+			verify(bookRepository).findByIsbn(testBookDTO2.getIsbn());
+			verify(authorRepository).findById(testBookDTO2.getAuthorId());
 
             verifyNoMoreInteractions(bookRepository);
             verifyNoMoreInteractions(authorRepository);
@@ -223,28 +248,28 @@ public class BookServiceTest {
         @Test
         @DisplayName("should not create book successfully")
         void shouldNotCreateBookSuccessfully() throws BookAlreadyExistsException, AuthorNotFoundException{
-            when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.of(testBook2));
+            when(bookRepository.findByIsbn(testBookDTO2.getIsbn())).thenReturn(Optional.of(testBook2));
 
             assertThatThrownBy(() -> bookService.createBook(testBookDTO2))
                 .isInstanceOf(BookAlreadyExistsException.class)
                 .hasMessageContaining("Book already exists with Isbn: " + testBookDTO2.getIsbn());
 
-            verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
+            verify(bookRepository).findByIsbn(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
         }
 
         @Test
         @DisplayName("should not create book successfully, author not found")
         void shouldNotCreateBookSuccessfullyNoAuthor() throws BookAlreadyExistsException, AuthorNotFoundException{
-            when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.empty());
+            when(bookRepository.findByIsbn(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
+            when(authorRepository.findById(testBookDTO2.getAuthorId())).thenReturn(Optional.empty());
             assertThatThrownBy(() -> bookService.createBook(testBookDTO2))
                 .isInstanceOf(AuthorNotFoundException.class)
                 .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthorId());
 
-            verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
+            verify(bookRepository).findByIsbn(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
-            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
+            verify(authorRepository).findById(testBookDTO2.getAuthorId());
             verifyNoMoreInteractions(authorRepository);
         }
 
@@ -255,11 +280,38 @@ public class BookServiceTest {
     class UpdateBook{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdAndBookDTOAreNull() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateBook(null, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameters should be NonNull: id, bookDTO");
+        }
+
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenBookDTOIsNull() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateBook(1L, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: bookDTO");
+        }
+
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateBook(null, testBookDTO))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+
+        @Test
         @DisplayName("should update a book")
-        void shouldUpdateBookSuccessfully() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.of(testAuthor));
-            when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
+        void shouldUpdateBookSuccessfully() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException, NullInputException {
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
+            when(authorRepository.findById(testBookDTO2.getAuthorId())).thenReturn(Optional.of(testAuthor));
+            when(bookRepository.findByIsbn(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
 
             BookDTO result = bookService.updateBook(testBook.getId(), testBookDTO2);
 
@@ -268,17 +320,17 @@ public class BookServiceTest {
             assertThat(result).isNotNull();
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO2);
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
-            verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
+            verify(bookRepository).findById(testBook.getId());
+            verify(bookRepository).findByIsbn(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
-            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
+            verify(authorRepository).findById(testBookDTO2.getAuthorId());
             verifyNoMoreInteractions(authorRepository);
         }
 
         @Test
         @DisplayName("should not update the book")
         void shouldNotUpdateBookSuccessfully() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
                 .isInstanceOf(BookService.BookNotFoundException.class)
@@ -289,19 +341,19 @@ public class BookServiceTest {
         @Test
         @DisplayName("should not update a book")
         void shouldNotUpdateBookSuccessfullyAuthorNotFound() throws BookNotFoundException, AuthorNotFoundException, BookAlreadyExistsException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn((Optional.of(testBook)));
-            when(authorRepository.findByIdAndDeletedFalse(testBookDTO2.getAuthorId())).thenReturn(Optional.empty());
-            when(bookRepository.findByIsbnAndDeletedFalse(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
+            when(bookRepository.findById(testBook.getId())).thenReturn((Optional.of(testBook)));
+            when(authorRepository.findById(testBookDTO2.getAuthorId())).thenReturn(Optional.empty());
+            when(bookRepository.findByIsbn(testBookDTO2.getIsbn())).thenReturn(Optional.empty());
 
             testBookDTO2.setId(testBook.getId());
             assertThatThrownBy(() -> bookService.updateBook(testBook.getId(),testBookDTO2))
                 .isInstanceOf(BookService.AuthorNotFoundException.class)
                 .hasMessageContaining("Author doesn't exist with id: " + testBookDTO2.getAuthorId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
-            verify(bookRepository).findByIsbnAndDeletedFalse(testBookDTO2.getIsbn());
+            verify(bookRepository).findById(testBook.getId());
+            verify(bookRepository).findByIsbn(testBookDTO2.getIsbn());
             verifyNoMoreInteractions(bookRepository);
-            verify(authorRepository).findByIdAndDeletedFalse(testBookDTO2.getAuthorId());
+            verify(authorRepository).findById(testBookDTO2.getAuthorId());
             verifyNoMoreInteractions(authorRepository);
         }
     }
@@ -311,15 +363,23 @@ public class BookServiceTest {
     class softDeleteBook{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.softDeleteBook(null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+        @Test
         @DisplayName("should soft delete the book")
-        void shouldSoftDeleteBookSuccessfully() throws BookNotFoundException{
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+        void shouldSoftDeleteBookSuccessfully() throws BookNotFoundException, NullInputException{
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
 
             bookService.softDeleteBook(testBook.getId());
 
             assertThat(testBook.getDeleted()).isTrue();
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
 
         }
@@ -327,13 +387,13 @@ public class BookServiceTest {
         @Test
         @DisplayName("should not soft delete a book")
         void shouldNotSoftDeleteBookSuccessfully() throws BookNotFoundException{
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.empty());
 
             assertThatThrownBy(() -> bookService.softDeleteBook(testBook.getId()))
                 .isInstanceOf(BookService.BookNotFoundException.class)
                 .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
 
         }
@@ -344,8 +404,16 @@ public class BookServiceTest {
     class deleteBook{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.deleteBook(null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+        @Test
         @DisplayName("should successfully delete a book")
-        void shouldDeleteBookSuccessfully() throws BookNotFoundException{
+        void shouldDeleteBookSuccessfully() throws BookNotFoundException, NullInputException{
             when(bookRepository.existsById(testBook.getId())).thenReturn(true);
 
             bookService.deleteBook(testBook.getId());
@@ -358,7 +426,7 @@ public class BookServiceTest {
 
         @Test
         @DisplayName("should not successfully delete a book")
-        void shouldNotDeleteBookSuccessfully() throws BookNotFoundException{
+        void shouldNotDeleteBookSuccessfully() throws BookNotFoundException, NullInputException{
             when(bookRepository.existsById(testBook.getId())).thenReturn(false);
 
             assertThatThrownBy(() -> bookService.deleteBook(testBook.getId()))
@@ -375,9 +443,33 @@ public class BookServiceTest {
     class updateAvailableCopies{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdAndQuantitiesAreNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateAvailableCopies(null, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameters should be NonNull: id, quantities");
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateAvailableCopies(null, 1))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenQuantitiesIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateAvailableCopies(1L, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: quantities");
+        }
+
+        @Test
         @DisplayName("should successfully update the available copies of a book")
-        void shouldUpdateAvailableCopiesSuccessfully()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+        void shouldUpdateAvailableCopiesSuccessfully()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException, NullInputException {
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
 
             BookDTO result = bookService.updateAvailableCopies(testBook.getId(), 1);
 
@@ -386,49 +478,49 @@ public class BookServiceTest {
             assertThat(result).isNotNull();
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
 
         @Test
         @DisplayName("should not successfully update the available copies of a book, not enough copies")
-        void shouldNotUpdateAvailableCopiesSuccessfullyNotEnough()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+        void shouldNotUpdateAvailableCopiesSuccessfullyNotEnough()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException, NullInputException {
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
 
 
             assertThatThrownBy(() -> bookService.updateAvailableCopies(testBook.getId(), -11))
                 .isInstanceOf(BookService.BookHasNotEnoughCopiesException.class)
                 .hasMessageContaining("The book with this id doesn't have enough copies: " + testBook.getId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
 
         @Test
         @DisplayName("should not successfully update the available copies of a book, too many copies")
         void shouldNotUpdateAvailableCopiesSuccessfullyTooMany()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
 
 
             assertThatThrownBy(() -> bookService.updateAvailableCopies(testBook.getId(), 11))
                 .isInstanceOf(BookService.BookHasTooManyCopiesException.class)
                 .hasMessageContaining("The book with this id has more available copies then total: " + testBook.getId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
 
         @Test
         @DisplayName("should not successfully update the available copies of a book, not found")
         void shouldNotUpdateAvailableCopiesSuccessfullyNotFound()throws BookNotFoundException, BookHasNotEnoughCopiesException, BookHasTooManyCopiesException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.empty());
 
 
             assertThatThrownBy(() -> bookService.updateAvailableCopies(testBook.getId(), 11))
                 .isInstanceOf(BookService.BookNotFoundException.class)
                 .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
 
@@ -438,9 +530,33 @@ public class BookServiceTest {
     class updateTotalCopies{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdAndQuantitesAreNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateTotalCopies(null, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameters should be NonNull: id, quantities");
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateTotalCopies(null, 1))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+        @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenQuantitiesIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.updateTotalCopies(1L, null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: quantities");
+        }
+
+        @Test
         @DisplayName("should successfully update total copies")
-        void shouldUpdateTotalCopiesSuccessfully() throws BookNotFoundException, BookHasNotEnoughCopiesException{
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+        void shouldUpdateTotalCopiesSuccessfully() throws BookNotFoundException, BookHasNotEnoughCopiesException, NullInputException{
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
 
             BookDTO result = bookService.updateTotalCopies(testBook.getId(), 11);
 
@@ -449,35 +565,35 @@ public class BookServiceTest {
             assertThat(result).isNotNull();
             assertThat(result).usingRecursiveComparison().isEqualTo(testBookDTO);
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
 
         @Test
         @DisplayName("should not successfully update the total copies of a book, not found")
-        void shouldNotUpdateTotalCopiesSuccessfullyNotFound()throws BookNotFoundException, BookHasNotEnoughCopiesException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.empty());
+        void shouldNotUpdateTotalCopiesSuccessfullyNotFound()throws BookNotFoundException, BookHasNotEnoughCopiesException, NullInputException {
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.empty());
 
 
             assertThatThrownBy(() -> bookService.updateTotalCopies(testBook.getId(), 11))
                 .isInstanceOf(BookService.BookNotFoundException.class)
                 .hasMessageContaining("Book doesn't exist with id: " + testBook.getId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
 
         @Test
         @DisplayName("should not successfully update the total copies of a book, not enough copies")
         void shouldNotUpdateTotalCopiesSuccessfullyNotEnough()throws BookNotFoundException, BookHasNotEnoughCopiesException {
-            when(bookRepository.findByIdAndDeletedFalse(testBook.getId())).thenReturn(Optional.of(testBook));
+            when(bookRepository.findById(testBook.getId())).thenReturn(Optional.of(testBook));
 
 
             assertThatThrownBy(() -> bookService.updateTotalCopies(testBook.getId(), -110))
                 .isInstanceOf(BookService.BookHasNotEnoughCopiesException.class)
                 .hasMessageContaining("The book with this id doesn't have enough copies: " + testBook.getId());
 
-            verify(bookRepository).findByIdAndDeletedFalse(testBook.getId());
+            verify(bookRepository).findById(testBook.getId());
             verifyNoMoreInteractions(bookRepository);
         }
     }
@@ -487,8 +603,17 @@ public class BookServiceTest {
     class restoreBookById{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.restoreBookById(null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: id");
+        }
+
+
+        @Test
         @DisplayName("should restore book by id successfully")
-        void shouldRestoreBookByIdSuccessfully() throws BookNotFoundException {
+        void shouldRestoreBookByIdSuccessfully() throws BookNotFoundException, NullInputException {
 
             testBook.setDeleted(true);
             Book spiedBook = spy(testBook);
@@ -528,8 +653,16 @@ public class BookServiceTest {
     class restoreBookByIsbn{
 
         @Test
+        @DisplayName("should throw an exception if the page is null")
+        void shouldThrowNullPointerException_whenIdIsNull() throws BookNotFoundException, NullInputException {
+            assertThatThrownBy(() -> bookService.restoreBookByIsbn(null))
+                .isInstanceOf(BookService.NullInputException.class)
+                .hasMessageContaining("This parameter should be NonNull: Isbn");
+        }
+
+        @Test
         @DisplayName("should restore book by Isbn successfully")
-        void shouldRestoreBookByIdSuccessfully() throws BookNotFoundException {
+        void shouldRestoreBookByIdSuccessfully() throws BookNotFoundException, NullInputException {
 
             testBook.setDeleted(true);
             Book spiedBook = spy(testBook);

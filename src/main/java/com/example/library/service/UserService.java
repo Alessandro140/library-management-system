@@ -38,7 +38,12 @@ public class UserService {
      * @param id the id of the user
      * @return an optional with the user if found, empty otherwise
      */
-    public @NonNull Optional<UserDTO> getUserById(@NonNull Long id) {
+    public @NonNull Optional<UserDTO> getUserById(@NonNull Long id) throws NullInputException {
+
+        if(id == null){
+            throw new NullInputException("id");
+        }
+
         // Find the user by its ID and map it to a DTO.
         return this.userRepository.findByIdAndDeletedFalse(id).map(this.userMapper::toDto);
     }
@@ -50,7 +55,11 @@ public class UserService {
      * @param pageable
      * @return A page with all the users
      */
-    public @NonNull Page<UserDTO> getUsers(Specification<User> userSpecification, @NonNull Pageable pageable){
+    public @NonNull Page<UserDTO> getUsers(Specification<User> userSpecification, @NonNull Pageable pageable) throws NullInputException{
+
+        if(pageable == null){
+            throw new NullInputException("pageable");
+        }
 
         Specification<User> specUser = SpecsNotDeleted.ensureNotDeleted(userSpecification);
 
@@ -64,7 +73,11 @@ public class UserService {
      * @return the saved user dto
      */
     @Transactional
-    public @NonNull UserDTO createUser(@NonNull UserDTO userDTO) throws UserAlreadyExistsException  {
+    public @NonNull UserDTO createUser(@NonNull UserDTO userDTO) throws UserAlreadyExistsException, NullInputException {
+        if(userDTO == null){
+            throw new NullInputException("userDTO");
+        }
+
         if(this.userRepository.findByEmailAndDeletedFalse(userDTO.getEmail()).isPresent()){
             throw new UserAlreadyExistsException(userDTO.getEmail());
         }
@@ -85,7 +98,15 @@ public class UserService {
      * @throws UserNotFoundException
      */
     @Transactional
-    public @NonNull UserDTO updateUser(@NonNull Long id, @NonNull UserDTO userDTO) throws UserNotFoundException, UserAlreadyExistsException{
+    public @NonNull UserDTO updateUser(@NonNull Long id, @NonNull UserDTO userDTO) throws UserNotFoundException, UserAlreadyExistsException, NullInputException{
+
+        if(id == null && userDTO == null){
+            throw new NullInputException("id", "userDTO");
+        } else if (id == null){
+            throw new NullInputException("id");
+        } else if (userDTO == null){
+            throw new NullInputException("userDTO");
+        }
 
         User userToModify = this.userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
@@ -108,7 +129,10 @@ public class UserService {
      * @throws UserNotFoundException
      */
     @Transactional
-    public void softDeleteUser(@NonNull Long id) throws UserNotFoundException{
+    public void softDeleteUser(@NonNull Long id) throws UserNotFoundException, NullInputException{
+        if(id == null){
+            throw new NullInputException("id");
+        }
         User user = this.userRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
         user.setDeleted(true);
@@ -121,7 +145,10 @@ public class UserService {
      * @throws UserNotFoundException
      */
     @Transactional
-    public void deleteUser(@NonNull Long id) throws UserNotFoundException{
+    public void deleteUser(@NonNull Long id) throws UserNotFoundException, NullInputException{
+        if(id == null){
+            throw new NullInputException("id");
+        }
         if (!this.userRepository.existsById(id)) {
             throw new UserNotFoundException(id);
         }
@@ -137,7 +164,11 @@ public class UserService {
      * @throws UserNotFoundException
      */
     @Transactional
-    public UserDTO restoreUserById(@NonNull Long id) throws UserNotFoundException{
+    public UserDTO restoreUserById(@NonNull Long id) throws UserNotFoundException, NullInputException{
+        if(id == null){
+            throw new NullInputException("id");
+        }
+
         User userToRestore = this.userRepository.findByIdAndDeletedTrue(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
 
@@ -171,6 +202,17 @@ public class UserService {
          */
         public UserAlreadyExistsException(@NotNull String email) {
             super("User already exists with email: " + email);
+        }
+    }
+
+    public static class NullInputException extends RepositoryException.BadRequest{
+
+        public NullInputException(@NotNull String parameterName){
+            super("This parameter should be NonNull: " + parameterName);
+        }
+
+        public NullInputException(@NotNull String parameterName1, @NotNull String parameterName2){
+            super("This parameters should be NonNull: " + parameterName1 + ", " + parameterName2);
         }
     }
 }

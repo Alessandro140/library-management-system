@@ -14,15 +14,6 @@ import com.example.library.entity.Category;
 @Repository
 public interface CategoryRepository extends JpaRepository<Category, Long>, JpaSpecificationExecutor<Category> {
 
-    /**
-     *
-	 * Find an category by its id.
-	 *
-	 * @param id the id of the category
-	 * @return an optional with the category if found, empty otherwise
-	 */
-	Optional<Category> findByIdAndDeletedFalse(Long id);
-
 	/**
 	 * Find a soft deleted category by its id.
 	 *
